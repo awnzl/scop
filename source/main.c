@@ -1,34 +1,26 @@
 #include "scop.h"
 
 const GLchar *vertex_code =
-"\
-#version 440 core\
-\
-layout (location = 0) in vec3 position;\
-layout (location = 1) in vec3 col;\
-\
-out vec4 vertexColor;\
-\
-void main()\
-{\
-   gl_Position = vec4(position.x, position.y, position.z, 1.0);\
+"#version 410 core\n\
+layout (location = 0) in vec3 position;\n\
+layout (location = 1) in vec3 col;\n\
+out vec4 vertexColor;\n\
+\n\
+void main()\n\
+{\n\
+   gl_Position = vec4(position, 1.0f);\n\
    vertexColor = vec4(col, 1.0f);\
-}\
-";
+}";
 
 const GLchar *fragment_code =
-"\
-#version 440 core\
-\
-in vec4 vertexColor;\
-\
-out vec4 color;\
-\
-void main()\
-{\
-   color = vertexColor;\
-}\
-";
+"#version 410 core\n\
+in vec4 vertexColor;\n\
+out vec4 color;\n\
+\n\
+void main()\n\
+{\n\
+   color = vertexColor;\n\
+}";
 
 static void		print_usage()
 {
@@ -38,6 +30,13 @@ static void		print_usage()
 static int		init_scop()
 {
 	g_pointers_idx = -1;
+	g_win.width = 1024;
+	g_win.height = 800;
+	g_win.title = "SCOP";
+
+	if (!init())
+		return (0);
+
 	return (1);
 }
 
@@ -53,13 +52,13 @@ static int		free_scop()
 	return (1);
 }
 
-static int		load_shader_program()
+static GLuint	load_shader_program()
 {
 	GLuint	vertex;
     GLuint	fragment;
     GLint	success;
     GLchar	infoLog[512];
-	GLint	program_id;
+	GLuint	program_id;
 
 
 	vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -69,9 +68,10 @@ static int		load_shader_program()
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success)
     {
+        //TODO: replace all messages from learnOpenGL (because pandora!!!)
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        ft_putstr("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
-		ft_putendl(infoLog);
+        print_error_endl("ERROR::SHADER::VERTEX::COMPILATION_FAILED");
+		print_error_endl(infoLog);
     };
 
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -82,8 +82,8 @@ static int		load_shader_program()
     if (!success)
     {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        ft_putstr("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
-		ft_putendl(infoLog);
+        print_error_endl("ERROR::SHADER::VERTEX::COMPILATION_FAILED");
+		print_error_endl(infoLog);
     };
 
 	program_id = glCreateProgram();
@@ -95,21 +95,23 @@ static int		load_shader_program()
     if (!success)
     {
         glGetProgramInfoLog(program_id, 512, NULL, infoLog);
-        ft_putstr("ERROR::SHADER::PROGRAM::LINKING_FAILED\n");
-		ft_putendl(infoLog);
+        print_error_endl("ERROR::SHADER::PROGRAM::LINKING_FAILED");
+		print_error_endl(infoLog);
     }
 
     // Удаляем шейдеры, поскольку они уже добавлены в программу и нам больше не нужны.
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
+    // glDeleteShader(vertex);
+    // glDeleteShader(fragment);
 	return program_id;
 }
 
 void			run(const char *filename)
 {
-	if (!init_scop() || !init())
+	if (!init_scop())
 		return ;
-
+// /* debug --- */
+// ft_putendl("init done");
+// /* --- debug */
     GLfloat normalized_vertices[] =
     {
          0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,  // Верхний правый угол
@@ -120,38 +122,38 @@ void			run(const char *filename)
 
     GLuint indices[] =
     {  // Помните, что мы начинаем с 0!
-        0, 1, 3,   // Первый треугольник
-        1, 2, 3    // Второй треугольник
+        0, 1, 2,   // Первый треугольник
+        0, 2, 3    // Второй треугольник
     };
 
+    GLuint shader_program_id = load_shader_program();
 //создаем буферный объект
     GLuint VBO;//vertex buffer object
+
     glGenBuffers(1, &VBO);
 
     //создаем буферный объект для индексов
     GLuint EBO;
     glGenBuffers(1, &EBO);
 
-    int shader_program_id = load_shader_program();
-
     GLuint VAO;//vertex array object
     glGenVertexArrays(1, &VAO);
+
     //Сначала привязываем VAO
     glBindVertexArray(VAO);
     //копируем вершины в буфер для OpenGL
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normalized_vertices), normalized_vertices, GL_STATIC_DRAW);
+    //bind EBO - здесь же отвязался VBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //copy indecses to buffer
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     //применяем VAO
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-
-    //bind EBO - здесь же отвязался VBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    //copy indecses to buffer
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     //Отвязываем VAO, дабы не изменить случайно, настраивая другие VAO.
     //Вообще, VAO нужно привязывать перед операцией и отвязывать сразу после оной.
@@ -171,10 +173,12 @@ void			run(const char *filename)
         glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shader_program_id);
-
+        // glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, (void*)0);
 		glfwPollEvents();
 		glfwSwapBuffers(g_win.win);
 	}
+    glBindVertexArray(0);
 
 }
 

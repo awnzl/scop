@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   scop.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: avenzel <avenzel@student.unit.ua>          +#+  +:+       +#+        */
+/*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 18:02:18 by avenzel           #+#    #+#             */
-/*   Updated: 2018/10/27 18:04:40 by avenzel          ###   ########.fr       */
+/*   Updated: 2018/11/04 17:19:49 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define __SCOP_H
 
 # ifdef __APPLE__
+# define GLEW_STATIC
 # include <GL/glew.h>
 # else
 # include <glad/glad.h> //for OpenGL header files
@@ -54,6 +55,8 @@ int				add_pointer(void *ptr);
 t_win			g_win;
 
 void			print_error(const char *mess);
+void			print_error_endl(const char *mess);
 int				init();
+int				create_window(void);
 
 #endif
