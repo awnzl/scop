@@ -6,7 +6,7 @@
 /*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 18:02:18 by avenzel           #+#    #+#             */
-/*   Updated: 2018/11/04 17:19:49 by avenzel          ###   ########.fr       */
+/*   Updated: 2018/11/17 20:06:43 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,18 +44,70 @@ typedef struct	s_win
 	GLFWwindow	*win;
 }				t_win;
 
+typedef struct	s_vertex
+{
+	float		x;
+	float		y;
+	float		z;
+	// float		w;
+}				t_v;
+
+typedef struct	s_vertex_normal
+{
+	float		i;
+	float		j;
+	float		k;
+}				t_vn;
+
+typedef struct	s_texture_vertex
+{
+	float		u;
+	float		v;
+	float		w;
+}				t_vt;
+
+/*
+  f 1 2 3
+  f 3/1 4/2 5/3
+  f 6/4/1 3/5/3 7/6/5
+  f 6//1 3//3 7//5
+  ???
+  ниже структура не верная.
+  face может состоять из трёх и более индексов вершин (смотри вики)
+  плюс нужно сохранить и остальную информацию, если есть
+ */
+typedef struct	s_face
+{
+	float		x;
+	float		y;
+	float		z;
+}				t_f;
+
+typedef struct	s_scope_state
+{
+	GLuint		v_databuf_size;
+	GLuint		f_databuf_size;
+	GLuint		f_databuf_pos;
+}				t_state;
+
 /*
 ** stores the pointers to the all allocated elements and
-** last index of stored element
+** last index of stored element and they will be deleted
+** in case of abort (if I will implement this :D)
 */
 int				g_pointers_idx;
 void			*g_pointers[25];
 int				add_pointer(void *ptr);
+/*
+** or do not use this idea?
+*/
 
 t_win			g_win;
+t_state			g_scop;
 
 void			print_error(const char *mess);
 void			print_error_endl(const char *mess);
+void			get_object_data(const char *filename);
 int				init();
 int				create_window(void);
 

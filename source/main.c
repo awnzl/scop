@@ -100,8 +100,8 @@ static GLuint	load_shader_program()
     }
 
     // Удаляем шейдеры, поскольку они уже добавлены в программу и нам больше не нужны.
-    // glDeleteShader(vertex);
-    // glDeleteShader(fragment);
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
 	return program_id;
 }
 
@@ -109,6 +109,8 @@ void			run(const char *filename)
 {
 	if (!init_scop())
 		return ;
+
+    get_object_data(filename);
 // /* debug --- */
 // ft_putendl("init done");
 // /* --- debug */
@@ -149,26 +151,26 @@ void			run(const char *filename)
     //copy indecses to buffer
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     //применяем VAO
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 
     //Отвязываем VAO, дабы не изменить случайно, настраивая другие VAO.
     //Вообще, VAO нужно привязывать перед операцией и отвязывать сразу после оной.
     glBindVertexArray(0);
-
     //отвязываем EBO после отвязывания VAO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+
+
+	while (!glfwWindowShouldClose(g_win.win))
+	{
     //теперь всякий раз, когда привязываем VAO, будет привязан VBO и EBO
     glBindVertexArray(VAO);//нету смысла это делать каждый раз в цикле, если здесь используется только один VAO 
     //но если в цикле разные VAO в разный момент времени привязываются и отвязываются, то перед использованием 
     //следующего предыдущий следует отвязать...
-
-	while (!glfwWindowShouldClose(g_win.win))
-	{
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 

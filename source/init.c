@@ -6,7 +6,7 @@
 /*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 19:37:51 by avenzel           #+#    #+#             */
-/*   Updated: 2018/11/04 17:40:54 by avenzel          ###   ########.fr       */
+/*   Updated: 2018/11/17 20:03:37 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ static int	init_glfw(void)
 }
 
 
-//TODO: move to separeted file with callback functions
+//TODO: move to a separeted file with callback functions
 int			create_window(void)
 {
 	GLenum err;
