@@ -1,16 +1,5 @@
 #include "scop.h"
 
-
-/*
-for now next is work well:
-open_file
-read_content
-read_data
-free_content
-read_vertices
-read_indixes
-*/
-
 static void	free_content(t_list **list)
 {
 	t_list *v;
@@ -43,7 +32,7 @@ static FILE	*open_file(const char *filename)
 	if (!(fl = fopen(filename, "r")))
 	{
 		perror("PARSER::OPENFILE::ERROR");
-		return NULL;
+		exit(EXIT_FAILURE);
 	}
 	return fl;
 }
@@ -174,85 +163,13 @@ static GLuint	*read_indices(t_list *content, GLuint *const size)
 	return (indices);
 }
 
-void		get_object_data(const char *filename)
+void		get_object_data(const char *filename, GLfloat **vertices, GLuint **indices)
 {
-	GLfloat	*vertices;
-	GLuint	*indices;
 	t_list	**content;
-	GLuint	v_size;
-	GLuint	i_size;
 
-	v_size = 0;
-	i_size = 0;
-	read_content(&v_size, &i_size, &content, filename);
-	vertices = read_vertices(content[0], v_size, 1);
-	indices = read_indices(content[1], &i_size);//i_size need to be updeted in reader
+	read_content(&g_scop.v_databuf_size, &g_scop.f_databuf_size, &content, filename);
+	*vertices = read_vertices(content[0], g_scop.v_databuf_size, 1);
+	*indices = read_indices(content[1], &g_scop.f_databuf_size);
+	g_scop.f_databuf_pos = g_scop.v_databuf_size;
 	free_content(content);
 }
-
-// /*
-// 1. read to the string array v and f
-// 2. then parse arrays
-
-// vvvvviiiiiiiiiiiiiiiiiiiiii
-// */
-
-// /* 	test main */
-// /*
-// gcc source/parser.c source/error.c source/funcs.c libft/libft.a -o test_parser \
-//     -I ~/.brew/include -I ./libft -L ~/.brew/lib -lGLEW -lGLFW
-// */
-
-// int main()
-// {
-//     GLfloat	*vertices;
-// 	GLuint	*indices;
-// 	t_list	**content;
-// 	t_list	*tmp;
-// 	GLuint	v_size;
-// 	GLuint	i_size;
-
-//     v_size = 0;
-// 	i_size = 0;
-// 	ft_putendl("before reading of content");
-// 	read_content(&v_size, &i_size, &content, "./resources/42.obj");
-// 	ft_putendl("content is readed");
-// 	ft_putstr("vertices num: ");
-// 	ft_putnbr(v_size);
-// 	ft_putendl("");
-// 	ft_putstr("num of face lines: ");
-// 	ft_putnbr(i_size);
-// 	ft_putendl("");
-
-//     tmp = content[0];
-//     while (tmp)
-//     {
-//         ft_putstr(tmp->data);
-//         tmp = tmp->next;
-//     }
-//     tmp = content[1];
-//     while (tmp)
-//     {
-//         ft_putstr(tmp->data);
-//         tmp = tmp->next;
-//     }
-
-// 	ft_putendl("data is printed");
-
-// 	vertices = read_vertices(content[0], v_size, 1);
-// 	printf("num of verties: %u\n", v_size);
-// 	int i = -1;
-// 	while(++i < v_size * 3)
-// 		printf("i: %i, float: %f\n", i, vertices[i]);
-
-// 	indices = read_indices(content[1], &i_size);//i_size need to be updeted in reader
-// 	i = -1;
-// 	while (++i < i_size)
-// 		printf("i: %i, int: %i\n", i, indices[i]);
-
-// 	free_content(content);
-
-// 	ft_putendl("end");
-
-//     return 0;
-// }

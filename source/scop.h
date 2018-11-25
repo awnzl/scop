@@ -6,7 +6,7 @@
 /*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 18:02:18 by avenzel           #+#    #+#             */
-/*   Updated: 2018/11/24 14:51:24 by avenzel          ###   ########.fr       */
+/*   Updated: 2018/11/25 17:04:56 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,10 @@ typedef struct	s_face
 	float		z;
 }				t_f;
 
+/*
+**	v_databuf_size is contain a quantity of vertices (xyz) -> v_databuf_size * 3
+**	f_databuf_size is contain a num of indices
+*/
 typedef struct	s_scope_state
 {
 	GLuint		v_databuf_size;
@@ -107,7 +111,7 @@ t_state			g_scop;
 
 void			print_error(const char *mess);
 void			print_error_endl(const char *mess);
-void			get_object_data(const char *filename);
+void			get_object_data(const char *filename, GLfloat **v, GLuint **i);
 int				init();
 int				create_window(void);
 void			*malloc_wrp(size_t size);

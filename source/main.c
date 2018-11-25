@@ -33,6 +33,9 @@ static int		init_scop()
 	g_win.width = 1024;
 	g_win.height = 800;
 	g_win.title = "SCOP";
+    g_scop.v_databuf_size = 0;
+	g_scop.f_databuf_size = 0;
+    g_scop.f_databuf_pos = 0;
 
 	if (!init())
 		return (0);
@@ -40,7 +43,7 @@ static int		init_scop()
 	return (1);
 }
 
-static int		free_scop()
+static void		free_scop()
 {
 	int idx;
 
@@ -50,7 +53,6 @@ static int		free_scop()
 		free(g_pointers[idx]);
 
 	glfwTerminate();
-	return (1);
 }
 
 static GLuint	load_shader_program()
@@ -112,23 +114,26 @@ void			run(const char *filename)
 	if (!init_scop())
 		return ;
 
-    get_object_data(filename);
 // /* debug --- */
 // ft_putendl("init done");
 // /* --- debug */
-    GLfloat normalized_vertices[] =
-    {
-         0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,  // Верхний правый угол
-         0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,  // Нижний правый угол
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,  // Нижний левый угол
-        -0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 0.0f   // Верхний левый угол
-    };
+    // GLfloat vertices[] =
+    // {
+    //      0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,  // Верхний правый угол
+    //      0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,  // Нижний правый угол
+    //     -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,  // Нижний левый угол
+    //     -0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 0.0f   // Верхний левый угол
+    // };
 
-    GLuint indices[] =
-    {  // Помните, что мы начинаем с 0!
-        0, 1, 2,   // Первый треугольник
-        0, 2, 3    // Второй треугольник
-    };
+    // GLuint indices[] =
+    // {  // Помните, что мы начинаем с 0!
+    //     0, 1, 2,   // Первый треугольник
+    //     0, 2, 3    // Второй треугольник
+    // };
+
+    GLfloat *vertices;
+    GLuint *indices;
+    get_object_data(filename, &vertices, &indices);
 
     GLuint shader_program_id = load_shader_program();
 //создаем буферный объект
@@ -147,7 +152,7 @@ void			run(const char *filename)
     glBindVertexArray(VAO);
     //копируем вершины в буфер для OpenGL
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normalized_vertices), normalized_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     //bind EBO - здесь же отвязался VBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     //copy indecses to buffer
