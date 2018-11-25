@@ -7,32 +7,9 @@ open_file
 read_content
 read_data
 free_content
-
-
-next is need to be finished and tested:
 read_vertices
 read_indixes
 */
-
-static GLfloat	*read_vertices(const t_list *content, const GLuint size, const int is_float)
-{
-	GLfloat *ret;
-	char	**tmp;
-	int		idx;
-	int		j;
-
-	ret = (GLfloat*)malloc(sizeof(GLfloat) * size * 3);
-	idx = -1;
-	while (content)
-	{
-		tmp = ft_strsplit(content->data, ' ');
-		j = 0;
-		while (tmp[++j])
-			ret[++idx] = is_float ? atof(tmp[j]) : atoi(tmp[j]);
-		content = content->next;
-	}
-	return (ret);
-}
 
 static void	free_content(t_list **list)
 {
@@ -65,55 +42,136 @@ static FILE	*open_file(const char *filename)
 
 	if (!(fl = fopen(filename, "r")))
 	{
-		perror("PARSER::OPEN::ERROR");
+		perror("PARSER::OPENFILE::ERROR");
 		return NULL;
 	}
 	return fl;
 }
 
-static void		read_data(	GLuint *vsz,
+static void		store_data(GLuint *vsz,
 							GLuint *isz,
-							FILE *file,
-							t_list **content)
+							t_list **vertex_face,
+							const char *line)
 {
-	t_list	*v;
-	t_list	*f;
-	char	*line;
-	size_t	size;
+	int		idx;
 
-	line = NULL;
-	v = content[0];
-	f = content[1];
-	while (getline(&line, &size, file) != -1)
-		if (line[0] == 'v')
-		{
-			v->data = ft_strdup(line);
-			v->next = ft_lstnew(NULL, 0);
-			v = v->next;
-			++(*vsz);
-		}
-		else if (line[0] == 'f')
-		{
-			f->data = ft_strdup(line);
-			f->next = ft_lstnew(NULL, 0);
-			f = f->next;
-			++(*isz);
-		}
+	idx = line[0] == 'v' ? 0 : 1;
+	vertex_face[idx]->data = ft_strdup(line);
+	vertex_face[idx]->next = ft_lstnew(NULL, 0);
+	vertex_face[!idx ? 2 : 3] = vertex_face[idx];
+	vertex_face[idx] = vertex_face[idx]->next;
+	!idx ? ++(*vsz) : ++(*isz);
 }
 
-static void		read_content(	GLuint *vsz,
+static void		read_content(GLuint *vsz,
 								GLuint *isz,
 								t_list ***content,
 								const char *filename)
 {
 	FILE	*file;
+	t_list	**vertex_face;
+	char	*line;
+	size_t	size;
 
+	line = NULL;
 	file = open_file(filename);
 	*content = malloc(sizeof(t_list) * 2);
+	vertex_face = malloc(sizeof(t_list) * 4);
 	(*content)[0] = ft_lstnew(NULL, 0);
 	(*content)[1] = ft_lstnew(NULL, 0);
-	read_data(vsz, isz, file, *content);
+	vertex_face[0] = (*content)[0];
+	vertex_face[1] = (*content)[1];
+	while (getline(&line, &size, file) != -1)
+		if (line[0] == 'v' || line[0] == 'f')
+			store_data(vsz, isz, vertex_face, line);
 	fclose(file);
+	vertex_face[0] = vertex_face[2]->next;
+	vertex_face[2]->next = NULL;
+	free(vertex_face[0]);
+	vertex_face[0] = vertex_face[3]->next;
+	vertex_face[3]->next = NULL;
+	free(vertex_face[0]);
+	free(vertex_face);
+}
+
+/*
+	if the idea with polygons with any count of vertices won't work, then this function
+   	maight be adapted for reading of verticies and faces depending on is_float value.
+	Faces will be triangulated before.
+*/
+static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_float)
+{
+	GLfloat *verticies;
+	GLfloat *head;
+	char	**tmp;
+	int		j;
+
+	verticies = (GLfloat*)malloc_wrp(sizeof(GLfloat) * size * 3);
+	head = verticies;
+	while (content)
+	{
+		if (!(tmp = ft_strsplit(content->data, ' ')))
+			exit(EXIT_FAILURE);
+		j = 0;
+		while (tmp[++j])
+			*head++ = atof(tmp[j]);//head[++idx] = is_float ? atof(tmp[j]) : atoi(tmp[j]) //read the comment befour function
+		while (--j >= 0)
+			free(tmp[j]);
+		free(tmp);
+		content = content->next;
+	}
+	return (verticies);
+}
+
+static GLuint	num_of_indices(t_list *content)
+{
+	GLuint	ret;
+	GLuint	itmp;
+	GLuint	j;
+	char	**tmp;
+
+	ret = 0;
+	while (content)
+	{
+		tmp = ft_strsplit(content->data, ' ');
+		itmp = 0;
+		while (tmp[++itmp])
+			++ret;
+		j = 0;
+		while (tmp[j])
+			free(tmp[j++]);
+		free(tmp);
+		content = content->next;
+	}
+	return (ret);
+}
+
+static GLuint	*read_indices(t_list *content, GLuint *const size)
+{
+	GLuint	*indices;
+	GLuint	*head;
+	int		idx;
+	int		j;
+	char	**arr;
+
+	*size = num_of_indices(content);
+	indices = (GLuint*)malloc_wrp(sizeof(GLuint) * (*size));
+	head = indices;
+	idx = 0;
+	while (idx < *size)
+	{
+		if (!(arr = ft_strsplit(content->data, ' ')))
+			exit(EXIT_FAILURE);
+		j = 0;
+		while (arr[++j])
+			*head++ = atoi(arr[j]);
+		idx += j - 1;
+		while (--j >= 0)
+			free(arr[j]);
+		free(arr);
+		content = content->next;
+	}
+	return (indices);
 }
 
 void		get_object_data(const char *filename)
@@ -127,20 +185,21 @@ void		get_object_data(const char *filename)
 	v_size = 0;
 	i_size = 0;
 	read_content(&v_size, &i_size, &content, filename);
-	// vertices = read_vertices(content[0], v_size, 1);
+	vertices = read_vertices(content[0], v_size, 1);
+	indices = read_indices(content[1], &i_size);//i_size need to be updeted in reader
 	free_content(content);
 }
 
-/*
-1. read to the string array v and f
-2. then parse arrays
+// /*
+// 1. read to the string array v and f
+// 2. then parse arrays
 
-vvvvviiiiiiiiiiiiiiiiiiiiii
-*/
+// vvvvviiiiiiiiiiiiiiiiiiiiii
+// */
 
 // /* 	test main */
 // /*
-// gcc source/parser.c source/error.c libft/libft.a -o test_parser \
+// gcc source/parser.c source/error.c source/funcs.c libft/libft.a -o test_parser \
 //     -I ~/.brew/include -I ./libft -L ~/.brew/lib -lGLEW -lGLFW
 // */
 
@@ -180,9 +239,20 @@ vvvvviiiiiiiiiiiiiiiiiiiiii
 
 // 	ft_putendl("data is printed");
 
-// 	// vertices = read_vertices(content, v_size, 1);
-// 	//
+// 	vertices = read_vertices(content[0], v_size, 1);
+// 	printf("num of verties: %u\n", v_size);
+// 	int i = -1;
+// 	while(++i < v_size * 3)
+// 		printf("i: %i, float: %f\n", i, vertices[i]);
+
+// 	indices = read_indices(content[1], &i_size);//i_size need to be updeted in reader
+// 	i = -1;
+// 	while (++i < i_size)
+// 		printf("i: %i, int: %i\n", i, indices[i]);
+
 // 	free_content(content);
+
+// 	ft_putendl("end");
 
 //     return 0;
 // }

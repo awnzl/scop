@@ -44,6 +44,7 @@ static int		free_scop()
 {
 	int idx;
 
+    ft_putendl("free_scop function is called");
 	idx = -1;
 	while (++idx <= g_pointers_idx)
 		free(g_pointers[idx]);
@@ -107,6 +108,7 @@ static GLuint	load_shader_program()
 
 void			run(const char *filename)
 {
+    atexit(&free_scop);
 	if (!init_scop())
 		return ;
 

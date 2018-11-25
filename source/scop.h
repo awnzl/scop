@@ -6,7 +6,7 @@
 /*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 18:02:18 by avenzel           #+#    #+#             */
-/*   Updated: 2018/11/17 20:06:43 by avenzel          ###   ########.fr       */
+/*   Updated: 2018/11/24 14:51:24 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ typedef struct	s_scope_state
 ** in case of abort (if I will implement this :D)
 */
 int				g_pointers_idx;
-void			*g_pointers[25];
+void			*g_pointers[1024];
 int				add_pointer(void *ptr);
 /*
 ** or do not use this idea?
@@ -110,5 +110,6 @@ void			print_error_endl(const char *mess);
 void			get_object_data(const char *filename);
 int				init();
 int				create_window(void);
+void			*malloc_wrp(size_t size);
 
 #endif
