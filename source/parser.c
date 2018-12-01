@@ -5,24 +5,26 @@ static void	free_content(t_list **list)
 	t_list *v;
 	t_list *f;
 
-	v = list[0];
-	f = list[1];
 	if (list)
 	{
+		v = list[0];
+		f = list[1];
 		while (v)
 		{
-			v = list[0]->next;
+			v = v->next;
+			free(list[0]->data);
 			free(list[0]);
 			list[0] = v;
 		}
 		while (f)
 		{
-			f = list[1]->next;
+			f = f->next;
+			free(list[1]->data);
 			free(list[1]);
 			list[1] = f;
 		}
+		free(list);
 	}
-	free(list);
 }
 
 static FILE	*open_file(const char *filename)
@@ -74,6 +76,7 @@ static void		read_content(GLuint *vsz,
 		if (line[0] == 'v' || line[0] == 'f')
 			store_data(vsz, isz, vertex_face, line);
 	fclose(file);
+	free(line);
 	vertex_face[0] = vertex_face[2]->next;
 	vertex_face[2]->next = NULL;
 	free(vertex_face[0]);
@@ -112,11 +115,86 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 	return (verticies);
 }
 
+// typedef	struct	s_indices_data
+// {
+// 	GLuint					vertices[3];
+// 	struct s_indices_data	*next;
+// }				t_indt;
+
+// static void		triangulate(t_indt *indata, GLuint size, char **arr)
+// {
+// 	indata->vertices[0] = atoi(arr[0]);//1
+// 	indata->vertices[1] = atoi(arr[1]);//2
+// 	indata->vertices[2] = atoi(arr[2]);//3
+// 	if (size == 5)
+// 	{
+// 		indata->next = (t_indt*)malloc_wrp(sizeof(t_indt));
+// 		indata = indata->next;
+// 		indata->next = NULL;
+// 		indata->vertices[2] = atoi(arr[2]);
+// 		indata->vertices[1] = atoi(arr[1]);
+// 		indata->vertices[3] = atoi(arr[3]);
+// 	}
+// }
+
+// static GLuint	num_of_indices(t_list *content)
+// {
+// 	GLuint	ret;
+// 	GLuint	itmp;
+// 	GLuint	j;
+// 	char	**tmp;
+// 	t_indt	*indata;
+
+// 	indata = (t_indt*)malloc_wrp(sizeof(t_indt));
+// 	indata->next = NULL;
+// 	ret = 0;
+// 	while (content)
+// 	{
+// 		tmp = ft_strsplit(content->data, ' ');
+// 		itmp = 0;
+// 		while (tmp[++itmp])
+// 			++ret;
+// 		triangulate(indata, itmp, tmp);
+// 		while (tmp[j])
+// 			free(tmp[j++]);
+// 		free(tmp);
+// 		content = content->next;
+// 	}
+// 	return (ret);
+// }
+
+// static GLuint	*read_indices(t_list *content, GLuint *const size)
+// {
+// 	GLuint	*indices;
+// 	GLuint	*head;
+// 	int		idx;
+// 	int		j;
+// 	char	**arr;
+
+// 	*size = num_of_indices(content);
+// 	indices = (GLuint*)malloc_wrp(sizeof(GLuint) * (*size));
+// 	head = indices;
+// 	idx = 0;
+// 	while (idx < *size)
+// 	{
+// 		if (!(arr = ft_strsplit(content->data, ' ')))
+// 			exit(EXIT_FAILURE);
+// 		j = 0;
+// 		while (arr[++j])
+// 			*head++ = atoi(arr[j]);
+// 		idx += j - 1;
+// 		while (--j >= 0)
+// 			free(arr[j]);
+// 		free(arr);
+// 		content = content->next;
+// 	}
+// 	return (indices);
+// }
+
 static GLuint	num_of_indices(t_list *content)
 {
 	GLuint	ret;
-	GLuint	itmp;
-	GLuint	j;
+	int		itmp;
 	char	**tmp;
 
 	ret = 0;
@@ -126,15 +204,16 @@ static GLuint	num_of_indices(t_list *content)
 		itmp = 0;
 		while (tmp[++itmp])
 			++ret;
-		j = 0;
-		while (tmp[j])
-			free(tmp[j++]);
+		while (--itmp >= 0)
+			free(tmp[itmp]);
 		free(tmp);
 		content = content->next;
 	}
 	return (ret);
 }
 
+
+/* NEED TO BE CHANGED TO TRIANGULATE POLYGONES */
 static GLuint	*read_indices(t_list *content, GLuint *const size)
 {
 	GLuint	*indices;

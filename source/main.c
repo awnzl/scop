@@ -51,7 +51,7 @@ static void		free_scop()
 	idx = -1;
 	while (++idx <= g_pointers_idx)
 		free(g_pointers[idx]);
-
+    g_pointers_idx = -1;
 	glfwTerminate();
 }
 
@@ -114,9 +114,6 @@ void			run(const char *filename)
 	if (!init_scop())
 		return ;
 
-// /* debug --- */
-// ft_putendl("init done");
-// /* --- debug */
     // GLfloat vertices[] =
     // {
     //      0.5f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,  // Верхний правый угол
@@ -136,39 +133,59 @@ void			run(const char *filename)
     get_object_data(filename, &vertices, &indices);
 
     GLuint shader_program_id = load_shader_program();
-//создаем буферный объект
-    GLuint VBO;//vertex buffer object
+    GLuint buffer;
+    GLuint vao;
 
-    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &buffer);
+    glGenVertexArrays(1, &vao);
 
-    //создаем буферный объект для индексов
-    GLuint EBO;
-    glGenBuffers(1, &EBO);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vao);
+    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size + g_scop.f_databuf_size,
+                    NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, g_scop.v_databuf_size, vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, g_scop.v_databuf_size, g_scop.f_databuf_size, indices);
 
-    GLuint VAO;//vertex array object
-    glGenVertexArrays(1, &VAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), g_scop.v_databuf_size);
+    /* Here is a problem - indices step. In this case is 3, but some polygons have four vertices...
+       So... there is a need to triangulate polygons
+    */
 
-    //Сначала привязываем VAO
-    glBindVertexArray(VAO);
-    //копируем вершины в буфер для OpenGL
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    //bind EBO - здесь же отвязался VBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    //copy indecses to buffer
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    //применяем VAO
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+// //создаем буферный объект
+//     GLuint VBO;//vertex buffer object
 
-    //Отвязываем VAO, дабы не изменить случайно, настраивая другие VAO.
-    //Вообще, VAO нужно привязывать перед операцией и отвязывать сразу после оной.
-    glBindVertexArray(0);
-    //отвязываем EBO после отвязывания VAO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//     glGenBuffers(1, &VBO);
+
+//     //создаем буферный объект для индексов
+//     GLuint EBO;
+//     glGenBuffers(1, &EBO);
+
+//     GLuint VAO;//vertex array object
+//     glGenVertexArrays(1, &VAO);
+
+//     //Сначала привязываем VAO
+//     glBindVertexArray(VAO);
+//     //копируем вершины в буфер для OpenGL
+//     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+//     //bind EBO - здесь же отвязался VBO
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+//     //copy indecses to buffer
+//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+//     //применяем VAO
+//     glEnableVertexAttribArray(0);
+//     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+//     glEnableVertexAttribArray(1);
+//     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+
+//     //Отвязываем VAO, дабы не изменить случайно, настраивая другие VAO.
+//     //Вообще, VAO нужно привязывать перед операцией и отвязывать сразу после оной.
+//     glBindVertexArray(0);
+//     //отвязываем EBO после отвязывания VAO
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
 
