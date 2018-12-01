@@ -1,6 +1,12 @@
 #include "scop.h"
 
-static void	free_content(t_list **list)
+typedef	struct	s_indices_data
+{
+	GLuint					idxs[3];
+	struct s_indices_data	*next;
+}				t_indt;
+
+static void		free_content(t_list **list)
 {
 	t_list *v;
 	t_list *f;
@@ -86,11 +92,6 @@ static void		read_content(GLuint *vsz,
 	free(vertex_face);
 }
 
-/*
-	if the idea with polygons with any count of vertices won't work, then this function
-   	maight be adapted for reading of verticies and faces depending on is_float value.
-	Faces will be triangulated before.
-*/
 static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_float)
 {
 	GLfloat *verticies;
@@ -106,7 +107,7 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 			exit(EXIT_FAILURE);
 		j = 0;
 		while (tmp[++j])
-			*head++ = atof(tmp[j]);//head[++idx] = is_float ? atof(tmp[j]) : atoi(tmp[j]) //read the comment befour function
+			*head++ = atof(tmp[j]);
 		while (--j >= 0)
 			free(tmp[j]);
 		free(tmp);
@@ -115,38 +116,84 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 	return (verticies);
 }
 
-// typedef	struct	s_indices_data
-// {
-// 	GLuint					vertices[3];
-// 	struct s_indices_data	*next;
-// }				t_indt;
+static t_indt	*triangulate(t_indt *indata, GLuint *all_size, GLuint size, char **arr)
+{
+	indata->idxs[0] = atoi(arr[1]);//1
+	indata->idxs[1] = atoi(arr[2]);//2
+	indata->idxs[2] = atoi(arr[3]);//3
+	if (size == 5)
+	{
+		(*all_size) += 2;
+		indata->next = (t_indt*)malloc(sizeof(t_indt));
+		indata = indata->next;
+		indata->next = NULL;
+		// 3 2 4 or 4 2 3 ???
+		indata->idxs[0] = atoi(arr[3]);
+		indata->idxs[1] = atoi(arr[2]);
+		indata->idxs[2] = atoi(arr[4]);
+	}
+	indata->next = (t_indt*)malloc(sizeof(t_indt));
+	indata->next->next = NULL;
+	return (indata->next);
+}
 
-// static void		triangulate(t_indt *indata, GLuint size, char **arr)
-// {
-// 	indata->vertices[0] = atoi(arr[0]);//1
-// 	indata->vertices[1] = atoi(arr[1]);//2
-// 	indata->vertices[2] = atoi(arr[2]);//3
-// 	if (size == 5)
-// 	{
-// 		indata->next = (t_indt*)malloc_wrp(sizeof(t_indt));
-// 		indata = indata->next;
-// 		indata->next = NULL;
-// 		indata->vertices[2] = atoi(arr[2]);
-// 		indata->vertices[1] = atoi(arr[1]);
-// 		indata->vertices[3] = atoi(arr[3]);
-// 	}
-// }
+/*
+**	returns number of the indices and fill list with indices values
+*/
+static GLuint	num_of_indices(t_list *content, t_indt	**indata)
+{
+	GLuint	ret;
+	int		itmp;
+	char	**arr;
+	t_indt	*tmp;
+
+	*indata = (t_indt*)malloc(sizeof(t_indt));
+	(*indata)->next = NULL;
+	tmp = *indata;
+	ret = 0;
+	while (content)
+	{
+		arr = ft_strsplit(content->data, ' ');
+		itmp = 0;
+		while (arr[++itmp])
+			++ret;
+		tmp = triangulate(tmp, &ret, itmp, arr);
+		while (--itmp >= 0)
+			free(arr[itmp]);
+		free(arr);
+		content = content->next;
+	}
+	return (ret);
+}
+
+static GLuint	*read_indices(t_list *content, GLuint *size)
+{
+	GLuint	*indices;
+	int		idx;
+	t_indt	*idxvalues;
+	t_indt	*tmp;
+
+	*size = num_of_indices(content, &idxvalues);
+	indices = (GLuint*)malloc_wrp(sizeof(GLuint) * (*size));
+	idx = -1;
+	while (idxvalues)
+	{
+		tmp = idxvalues;
+		indices[++idx] = idxvalues->idxs[0];
+		indices[++idx] = idxvalues->idxs[1];
+		indices[++idx] = idxvalues->idxs[2];
+		idxvalues = idxvalues->next;
+		free(tmp);
+	}
+	return (indices);
+}
 
 // static GLuint	num_of_indices(t_list *content)
 // {
 // 	GLuint	ret;
-// 	GLuint	itmp;
-// 	GLuint	j;
+// 	int		itmp;
 // 	char	**tmp;
-// 	t_indt	*indata;
 
-// 	indata = (t_indt*)malloc_wrp(sizeof(t_indt));
-// 	indata->next = NULL;
 // 	ret = 0;
 // 	while (content)
 // 	{
@@ -154,15 +201,16 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 // 		itmp = 0;
 // 		while (tmp[++itmp])
 // 			++ret;
-// 		triangulate(indata, itmp, tmp);
-// 		while (tmp[j])
-// 			free(tmp[j++]);
+// 		while (--itmp >= 0)
+// 			free(tmp[itmp]);
 // 		free(tmp);
 // 		content = content->next;
 // 	}
 // 	return (ret);
 // }
 
+
+// /* NEED TO BE CHANGED TO TRIANGULATE POLYGONES */
 // static GLuint	*read_indices(t_list *content, GLuint *const size)
 // {
 // 	GLuint	*indices;
@@ -190,57 +238,6 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 // 	}
 // 	return (indices);
 // }
-
-static GLuint	num_of_indices(t_list *content)
-{
-	GLuint	ret;
-	int		itmp;
-	char	**tmp;
-
-	ret = 0;
-	while (content)
-	{
-		tmp = ft_strsplit(content->data, ' ');
-		itmp = 0;
-		while (tmp[++itmp])
-			++ret;
-		while (--itmp >= 0)
-			free(tmp[itmp]);
-		free(tmp);
-		content = content->next;
-	}
-	return (ret);
-}
-
-
-/* NEED TO BE CHANGED TO TRIANGULATE POLYGONES */
-static GLuint	*read_indices(t_list *content, GLuint *const size)
-{
-	GLuint	*indices;
-	GLuint	*head;
-	int		idx;
-	int		j;
-	char	**arr;
-
-	*size = num_of_indices(content);
-	indices = (GLuint*)malloc_wrp(sizeof(GLuint) * (*size));
-	head = indices;
-	idx = 0;
-	while (idx < *size)
-	{
-		if (!(arr = ft_strsplit(content->data, ' ')))
-			exit(EXIT_FAILURE);
-		j = 0;
-		while (arr[++j])
-			*head++ = atoi(arr[j]);
-		idx += j - 1;
-		while (--j >= 0)
-			free(arr[j]);
-		free(arr);
-		content = content->next;
-	}
-	return (indices);
-}
 
 void		get_object_data(const char *filename, GLfloat **vertices, GLuint **indices)
 {
