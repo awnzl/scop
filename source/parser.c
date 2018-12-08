@@ -37,12 +37,14 @@ static FILE	*open_file(const char *filename)
 {
 	FILE	*fl;
 
+ft_putstr("Filename: ");
+ft_putendl(filename);
 	if (!(fl = fopen(filename, "r")))
 	{
 		perror("PARSER::OPENFILE::ERROR");
 		exit(EXIT_FAILURE);
 	}
-	return fl;
+	return (fl);
 }
 
 static void		store_data(GLuint *vsz,
@@ -187,57 +189,6 @@ static GLuint	*read_indices(t_list *content, GLuint *size)
 	}
 	return (indices);
 }
-
-// static GLuint	num_of_indices(t_list *content)
-// {
-// 	GLuint	ret;
-// 	int		itmp;
-// 	char	**tmp;
-
-// 	ret = 0;
-// 	while (content)
-// 	{
-// 		tmp = ft_strsplit(content->data, ' ');
-// 		itmp = 0;
-// 		while (tmp[++itmp])
-// 			++ret;
-// 		while (--itmp >= 0)
-// 			free(tmp[itmp]);
-// 		free(tmp);
-// 		content = content->next;
-// 	}
-// 	return (ret);
-// }
-
-
-// /* NEED TO BE CHANGED TO TRIANGULATE POLYGONES */
-// static GLuint	*read_indices(t_list *content, GLuint *const size)
-// {
-// 	GLuint	*indices;
-// 	GLuint	*head;
-// 	int		idx;
-// 	int		j;
-// 	char	**arr;
-
-// 	*size = num_of_indices(content);
-// 	indices = (GLuint*)malloc_wrp(sizeof(GLuint) * (*size));
-// 	head = indices;
-// 	idx = 0;
-// 	while (idx < *size)
-// 	{
-// 		if (!(arr = ft_strsplit(content->data, ' ')))
-// 			exit(EXIT_FAILURE);
-// 		j = 0;
-// 		while (arr[++j])
-// 			*head++ = atoi(arr[j]);
-// 		idx += j - 1;
-// 		while (--j >= 0)
-// 			free(arr[j]);
-// 		free(arr);
-// 		content = content->next;
-// 	}
-// 	return (indices);
-// }
 
 void		get_object_data(const char *filename, GLfloat **vertices, GLuint **indices)
 {
