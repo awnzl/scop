@@ -6,7 +6,7 @@
 /*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 18:02:18 by avenzel           #+#    #+#             */
-/*   Updated: 2018/12/08 21:39:31 by avenzel          ###   ########.fr       */
+/*   Updated: 2018/12/30 18:35:06 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@
 # include "libft.h"
 
 # include "objrepresentation.h"
+
+# define RADIAN(a) (0.01745329 * a)
 
 typedef struct	s_scop
 {
@@ -111,8 +113,9 @@ typedef struct	s_scope_state
 	t_v			cam_dir;
 	t_v			cam_right;
 	t_v			cam_up;
-
-	// t_v mat4[4] or GLfloat[16] ??? let's check if t_v mat4[4] allows to iterate throught structs values
+	GLfloat		view[16];
+	GLfloat		projection[16];
+	// GLfloat		*projection;
 }				t_state;
 
 /*
@@ -143,7 +146,8 @@ void			scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void			mouse_movements(t_v *cam_front);
 void			keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up);
 
-GLfloat			*view_matrix();
+void			update_view_matrix();
+void			proj_matrix();
 
 
 /*

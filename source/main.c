@@ -5,15 +5,14 @@ const GLchar *vertex_code =
 layout (location = 0) in vec3 position;\n\
 out vec4 vertexColor;\n\
 \n\
-// uniform mat4 view;\n\
+uniform mat4 view;\n\
 // uniform mat4 model;\n\
-// uniform mat4 projection;\n\
+uniform mat4 projection;\n\
 \n\
 void main()\n\
 {\n\
-//    gl_Position = projection * view * vec4(position, 1.0f);\n\
-    gl_Position = vec4(position, 1.0f);\n\
-   vertexColor = vec4(1.0f);\
+    gl_Position = projection * view * vec4(position, 1.0f);\n\
+    vertexColor = vec4(1.0f);\
 }";
 
 const GLchar *fragment_code =
@@ -23,7 +22,7 @@ out vec4 color;\n\
 \n\
 void main()\n\
 {\n\
-   color = vertexColor;\n\
+    color = vertexColor;\n\
 }";
 
 static void		print_usage()
@@ -44,8 +43,6 @@ static int		init_scop()
     g_scop.is_pol_mod = 0;
     g_scop.xpos = 0.0f;
     g_scop.ypos = 0.0f;
-    g_scop.delta_time = 0.0f;
-    g_scop.last_time = 0.0f;
     g_scop.fov = 45.0f;
     g_scop.light_x = 0.7f;
     g_scop.light_y = 0.7f;
@@ -53,12 +50,14 @@ static int		init_scop()
     g_scop.delta_time = 0.0f;
     g_scop.last_time = 0.0f;
 
-    g_scop.cam_pos = vector(0.0f , 0.0f , 3.0f);
-    g_scop.cam_front = vector(0.0f , 0.0f , -1.0f);
+    g_scop.cam_pos = vector(0.0f , 0.0f , 1.0f);
+    g_scop.cam_front = norm(vector(0.0f , 0.0f , -1.0f));
     g_scop.cam_target = vector(0.0f, 0.0f, 0.0f);
     g_scop.cam_dir = norm(sub(g_scop.cam_pos, g_scop.cam_target));
     g_scop.cam_right = norm(cross(vector(0.0f, 1.0f, 0.0f), g_scop.cam_dir));
     g_scop.cam_up = norm(cross(g_scop.cam_dir, g_scop.cam_right));
+    ft_memset(g_scop.view, 0, sizeof(GLfloat) * 16);
+    proj_matrix();
 
 	if (!init())
 		return (0);
@@ -138,7 +137,7 @@ void			run(const char *filename)
 		return ;
 
     glfwSetKeyCallback(g_win.win, key_callback);
-    // glfwSetCursorPosCallback(g_win.win, mouse_callback);
+    glfwSetCursorPosCallback(g_win.win, mouse_callback);
     // glfwSetScrollCallback(g_win.win, scroll_callback);
 
     // configure global opengl state
@@ -178,18 +177,18 @@ void			run(const char *filename)
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // //матрица вида, построенная перемножением матрицы трех осей и положения камеры
-        // glm::mat4 view = cam.GetViewMatrix();
+        update_view_matrix();
         // //матрица проекции
         // glm::mat4 projection = glm::perspective(glm::radians(fov), (float)(winWidth / winHeight), 0.1f, 100.0f);
 
+
 		glUseProgram(shader_program_id);
 //!!!!!!!Don't forget to uncomment shader code!!! (for this matirces)
-        // glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "projection"), 1, GL_FALSE, &projection[0][0]);
-        // glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "view"), 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "projection"), 1, GL_FALSE, g_scop.projection);
+        glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "view"), 1, GL_FALSE, g_scop.view);
         // glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "model"), 1, GL_FALSE, &model[0][0]);
 
-        // render Cube
+
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, g_scop.f_databuf_size, GL_UNSIGNED_INT, (void*)0);
 
