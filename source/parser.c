@@ -81,7 +81,7 @@ static void		read_content(GLuint *vsz,
 	vertex_face[0] = (*content)[0];
 	vertex_face[1] = (*content)[1];
 	while (getline(&line, &size, file) != -1)
-		if (line[0] == 'v' || line[0] == 'f')
+		if ((line[0] == 'v' || line[0] == 'f') && line[1] == ' ')
 			store_data(vsz, isz, vertex_face, line);
 	fclose(file);
 	free(line);
@@ -120,9 +120,9 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 
 static t_indt	*triangulate(t_indt *indata, GLuint *all_size, GLuint size, char **arr)
 {
-	indata->idxs[0] = atoi(arr[1]);//1
-	indata->idxs[1] = atoi(arr[2]);//2
-	indata->idxs[2] = atoi(arr[3]);//3
+	indata->idxs[0] = atoi(arr[1]) - 1;//1
+	indata->idxs[1] = atoi(arr[2]) - 1;//2
+	indata->idxs[2] = atoi(arr[3]) - 1;//3
 	if (size == 5)
 	{
 		(*all_size) += 2;
@@ -130,9 +130,9 @@ static t_indt	*triangulate(t_indt *indata, GLuint *all_size, GLuint size, char *
 		indata = indata->next;
 		indata->next = NULL;
 		// 3 2 4 or 4 2 3 ???
-		indata->idxs[0] = atoi(arr[3]);
-		indata->idxs[1] = atoi(arr[2]);
-		indata->idxs[2] = atoi(arr[4]);
+		indata->idxs[0] = atoi(arr[4]) - 1;
+		indata->idxs[1] = atoi(arr[2]) - 1;
+		indata->idxs[2] = atoi(arr[3]) - 1;
 	}
 	indata->next = (t_indt*)malloc(sizeof(t_indt));
 	indata->next->next = NULL;

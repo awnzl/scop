@@ -9,10 +9,11 @@ uniform mat4 view;\n\
 // uniform mat4 model;\n\
 uniform mat4 projection;\n\
 \n\
+\n\
 void main()\n\
 {\n\
     gl_Position = projection * view * vec4(position, 1.0f);\n\
-    vertexColor = vec4(1.0f);\
+    vertexColor = vec4(.630f);\
 }";
 
 const GLchar *fragment_code =
@@ -50,7 +51,7 @@ static int		init_scop()
     g_scop.delta_time = 0.0f;
     g_scop.last_time = 0.0f;
 
-    g_scop.cam_pos = vector(0.0f , 0.0f , 1.0f);
+    g_scop.cam_pos = norm(vector(0.0f , 0.0f , 1.0f));
     g_scop.cam_front = norm(vector(0.0f , 0.0f , -1.0f));
     g_scop.cam_target = vector(0.0f, 0.0f, 0.0f);
     g_scop.cam_dir = norm(sub(g_scop.cam_pos, g_scop.cam_target));
@@ -136,16 +137,20 @@ void			run(const char *filename)
 	if (!init_scop())
 		return ;
 
+    glfwSetInputMode(g_win.win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetKeyCallback(g_win.win, key_callback);
     glfwSetCursorPosCallback(g_win.win, mouse_callback);
     // glfwSetScrollCallback(g_win.win, scroll_callback);
 
     // configure global opengl state
     glEnable(GL_DEPTH_TEST);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     GLfloat *vertices;
     GLuint *indices;
     get_object_data(filename, &vertices, &indices);
+
+    printf("vsize: %i; fnum: %i\n", g_scop.v_databuf_size, g_scop.f_databuf_size);
 
     GLuint shader_program_id = load_shader_program();
     GLuint buffer;
@@ -167,7 +172,8 @@ void			run(const char *filename)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
     glBindVertexArray(0);
-
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
     glBindVertexArray(vao);//нету смысла это делать каждый раз в цикле, если здесь используется только один VAO 
@@ -178,18 +184,12 @@ void			run(const char *filename)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         update_view_matrix();
-        // //матрица проекции
-        // glm::mat4 projection = glm::perspective(glm::radians(fov), (float)(winWidth / winHeight), 0.1f, 100.0f);
 
 
 		glUseProgram(shader_program_id);
-//!!!!!!!Don't forget to uncomment shader code!!! (for this matirces)
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "projection"), 1, GL_FALSE, g_scop.projection);
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "view"), 1, GL_FALSE, g_scop.view);
-        // glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "model"), 1, GL_FALSE, &model[0][0]);
 
-
-        glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, g_scop.f_databuf_size, GL_UNSIGNED_INT, (void*)0);
 
 		glfwSwapBuffers(g_win.win);

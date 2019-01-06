@@ -1,6 +1,6 @@
 #include "scop.h"
 
-void mouse_movements(t_v *cam_front)
+void mouse_movements()
 {
 	GLfloat yaw = -90.0f;
 	GLfloat pitch = 0.0f;
@@ -14,7 +14,8 @@ void mouse_movements(t_v *cam_front)
 	if (pitch < -89.0f)
 		pitch = -89.0f;
 
-	*cam_front = norm(vector(cos(RADIAN(pitch)) * cos(RADIAN(yaw)),
+	g_scop.cam_front = norm(vector(
+						cos(RADIAN(pitch)) * cos(RADIAN(yaw)),
 						sin(RADIAN(pitch)),
 						cos(RADIAN(pitch)) * sin(RADIAN(yaw))));
 }
@@ -27,9 +28,9 @@ void keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up)
 
 	GLfloat cam_speed = 5.0f * g_scop.delta_time;
 	if (g_scop.keys[GLFW_KEY_W])
-		*cam_pos = sub(*cam_pos, scale_n(*cam_front, cam_speed));
-	if (g_scop.keys[GLFW_KEY_S])
 		*cam_pos = add(*cam_pos, scale_n(*cam_front, cam_speed));
+	if (g_scop.keys[GLFW_KEY_S])
+		*cam_pos = sub(*cam_pos, scale_n(*cam_front, cam_speed));
 	if (g_scop.keys[GLFW_KEY_A])
 		*cam_pos = sub(*cam_pos,
 						scale_n(norm(cross(*cam_up, *cam_front)), cam_speed));
@@ -62,7 +63,7 @@ void keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up)
 
 void	update_view_matrix()
 {
-	// mouse_movements(&g_scop.cam_front);
+	mouse_movements();
 	keyboard_movements(&g_scop.cam_pos, &g_scop.cam_front, &g_scop.cam_up);
 
 	//mat4 is an array of 16 GLfloats
@@ -85,6 +86,13 @@ void	update_view_matrix()
 		// xaxis = normal(cross(Up, zaxis))		-> g_scop.cam_right
 		// yaxis = cross(zaxis, xaxis)			-> g_scop.cam_up
 
+	/*
+	https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/lookat-function
+	from --> cam_pos
+	forward --> cam_dir
+	to --> cam_target
+	*/
+
 	g_scop.view[0] = g_scop.cam_right.x;
 	g_scop.view[1] = g_scop.cam_up.x;
 	g_scop.view[2] = g_scop.cam_dir.x;
@@ -97,9 +105,9 @@ void	update_view_matrix()
 	g_scop.view[9] = g_scop.cam_up.z;
 	g_scop.view[10] = g_scop.cam_dir.z;
 	g_scop.view[11] = 0;
-	g_scop.view[12] = dot(g_scop.cam_right, scale_n(g_scop.cam_pos, -1));
-	g_scop.view[13] = dot(g_scop.cam_up, scale_n(g_scop.cam_pos, -1));
-	g_scop.view[14] = dot(g_scop.cam_dir, scale_n(g_scop.cam_pos, -1));
+	g_scop.view[12] = dot(add(g_scop.cam_pos, g_scop.cam_front), g_scop.cam_right);
+	g_scop.view[13] = dot(add(g_scop.cam_pos, g_scop.cam_front), g_scop.cam_up);
+	g_scop.view[14] = dot(add(g_scop.cam_pos, g_scop.cam_front), g_scop.cam_dir);
 	g_scop.view[15] = 1;
 	// [         g_scop.cam_right.x          g_scop.cam_up.x          g_scop.cam_dir.x  0 ]
 	// [         g_scop.cam_right.y          g_scop.cam_up.y          g_scop.cam_dir.y  0 ]
@@ -109,12 +117,16 @@ void	update_view_matrix()
 
 void	proj_matrix()
 {
+	GLfloat fov;
+
+	fov = g_scop.fov;
+	RADIAN(fov);
+	fov = tan(fov / 2);
 	ft_memset(g_scop.projection, 0, sizeof(GLfloat) * 16);
-	RADIAN(g_scop.fov);
-	g_scop.projection[0] = (g_win.width / g_win.height) / tan(g_scop.fov / 2.0f);
-	g_scop.projection[5] = 1.0f / tan(g_scop.fov / 2.0f);
-	g_scop.projection[10] = (100.0f + 0.1f) / (100.0f - 0.1f);
+	g_scop.projection[0] = (g_win.width / g_win.height) / fov;
+	g_scop.projection[5] = 1.0f / fov;
+	g_scop.projection[10] = 100.1f / 99.9f;
 	g_scop.projection[11] = 1.0f;
-	g_scop.projection[14] = -2.0f * 100.0f * 0.1f / (100.0f - 0.1f);
-	g_scop.projection[15] = 1.0f;
+	g_scop.projection[14] = -2.0f * 100.0f * 0.1f / 99.9f;
+	g_scop.projection[15] = 0.0f;
 }
