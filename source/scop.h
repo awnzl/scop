@@ -6,7 +6,7 @@
 /*   By: avenzel <avenzel@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/27 18:02:18 by avenzel           #+#    #+#             */
-/*   Updated: 2018/12/30 20:12:52 by avenzel          ###   ########.fr       */
+/*   Updated: 2019/01/08 20:48:25 by avenzel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,16 +69,6 @@ typedef struct	s_texture_vertex
 	float		w;
 }				t_vt;
 
-/*
-  f 1 2 3
-  f 3/1 4/2 5/3
-  f 6/4/1 3/5/3 7/6/5
-  f 6//1 3//3 7//5
-  ???
-  ниже структура не верная.
-  face может состоять из трёх и более индексов вершин (смотри вики)
-  плюс нужно сохранить и остальную информацию, если есть
- */
 typedef struct	s_face
 {
 	float		x;
@@ -99,7 +89,7 @@ typedef struct	s_scope_state
 	int			keys[1024];
 	int			is_pol_mod; // = false;
 	GLfloat		xpos; // = 0.0f;
-	GLfloat		ypos; // = 0.0f;
+	GLfloat		rotation_angle;//
 	GLfloat		delta_time; // = 0.0f;
 	GLfloat		last_time; // = 0.0f;
 	GLfloat		fov; // = 45.0f;
@@ -114,6 +104,7 @@ typedef struct	s_scope_state
 	t_v			cam_right;
 	t_v			cam_up;
 	GLfloat		view[16];
+	GLfloat		rotation[16];
 	GLfloat		projection[16];
 	// GLfloat		*projection;
 }				t_state;
@@ -146,7 +137,7 @@ void			scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void			mouse_movements();
 void			keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up);
 
-void			update_view_matrix();
+void			update_matrices();
 void			proj_matrix();
 
 
@@ -165,10 +156,3 @@ void			scale_s(t_v*, GLfloat);
 GLfloat			dot(t_v v1, t_v v2);
 
 #endif
-
-/*
-
-Прикрутить камеру, чтобы двигаться вокруг объекта
-прикрутить свет и его движение
-
-*/

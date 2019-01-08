@@ -130,9 +130,9 @@ static t_indt	*triangulate(t_indt *indata, GLuint *all_size, GLuint size, char *
 		indata = indata->next;
 		indata->next = NULL;
 		// 3 2 4 or 4 2 3 ???
-		indata->idxs[0] = atoi(arr[4]) - 1;
+		indata->idxs[0] = atoi(arr[3]) - 1;
 		indata->idxs[1] = atoi(arr[2]) - 1;
-		indata->idxs[2] = atoi(arr[3]) - 1;
+		indata->idxs[2] = atoi(arr[4]) - 1;
 	}
 	indata->next = (t_indt*)malloc(sizeof(t_indt));
 	indata->next->next = NULL;
