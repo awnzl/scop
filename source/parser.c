@@ -101,7 +101,7 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 	char	**tmp;
 	int		j;
 
-	verticies = (GLfloat*)malloc_wrp(sizeof(GLfloat) * size * 3);
+	verticies = (GLfloat*)malloc_wrp(sizeof(GLfloat) * size * 2 * 3);
 	head = verticies;
 	while (content)
 	{

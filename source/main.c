@@ -2,7 +2,8 @@
 
 const GLchar *vertex_code =
 "#version 410 core\n\
-layout (location = 0) in vec3 position;\n\
+layout (location = 0) in vec3 aPosition;\n\
+layout (location = 1) in vec3 aColor;\n\
 out vec4 vertexColor;\n\
 \n\
 uniform mat4 view;\n\
@@ -13,8 +14,8 @@ uniform mat4 rotation;\n\
 \n\
 void main()\n\
 {\n\
-    gl_Position = projection * view * rotation * vec4(position, 1.0f);\n\
-    vertexColor = vec4(.630f);\
+    gl_Position = projection * view * rotation * vec4(aPosition, 1.0f);\n\
+    vertexColor = vec4(aColor, 1.0f);\n\
 }";
 
 const GLchar *fragment_code =
@@ -52,9 +53,9 @@ static int		init_scop()
     g_scop.delta_time = 0.0f;
     g_scop.last_time = 0.0f;
 
-    g_scop.cam_pos = norm(vector(0.0f , 0.0f , 1.0f));
+    g_scop.cam_pos = vector(0.0f , 0.0f , 8.0f);
     g_scop.cam_front = norm(vector(0.0f , 0.0f , -1.0f));
-    g_scop.cam_target = vector(0.0f, 0.0f, 0.0f);
+    g_scop.cam_target = norm(vector(0.0f, 0.0f, 1.0f));
     g_scop.cam_dir = norm(sub(g_scop.cam_pos, g_scop.cam_target));
     g_scop.cam_right = norm(cross(vector(0.0f, 1.0f, 0.0f), g_scop.cam_dir));
     g_scop.cam_up = norm(cross(g_scop.cam_dir, g_scop.cam_right));
@@ -134,6 +135,28 @@ static GLuint	load_shader_program()
 	return program_id;
 }
 
+static void     *colored_data(GLfloat *vertices)
+{
+    int idx;
+    GLfloat tmp[g_scop.v_databuf_size * 2];
+
+    idx = 0;
+    while (idx < g_scop.v_databuf_size * 2)
+    {
+        tmp[idx] = vertices[idx];
+        tmp[idx + 1] = vertices[idx];
+        tmp[idx + 2] = vertices[idx];
+        tmp[idx + 3] = 0x3d3d3d;
+        tmp[idx + 4] = 0x8e8e8e;
+        tmp[idx + 5] = 0xeaeaea;
+        idx += 6;
+    }
+    printf("pritfdebug ");
+    while (--idx >= 0)
+        vertices[idx] = tmp[idx];
+    return (vertices);
+}
+
 void			run(const char *filename)
 {
     atexit(&free_scop);
@@ -168,13 +191,16 @@ void			run(const char *filename)
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size * 2 * 3 * sizeof(GLfloat), colored_data(vertices), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glBindVertexArray(0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_scop.f_databuf_size * sizeof(GLuint), indices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
