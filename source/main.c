@@ -135,26 +135,68 @@ static GLuint	load_shader_program()
 	return program_id;
 }
 
-static void     *colored_data(GLfloat *vertices)
+static void     *colored_data(GLfloat *vertices, GLfloat *colors)
 {
     int idx;
-    GLfloat tmp[g_scop.v_databuf_size * 2];
+    int cidx;
+    GLfloat tmp[g_scop.v_databuf_size * 2 * 3];
 
     idx = 0;
-    while (idx < g_scop.v_databuf_size * 2)
+    cidx = 0;
+    int mark = 0;
+    printf("size %i\n", g_scop.v_databuf_size);
+    while (idx < g_scop.v_databuf_size * 2 * 3)
     {
-        tmp[idx] = vertices[idx];
-        tmp[idx + 1] = vertices[idx];
-        tmp[idx + 2] = vertices[idx];
-        tmp[idx + 3] = 0x3d3d3d;
-        tmp[idx + 4] = 0x8e8e8e;
-        tmp[idx + 5] = 0xeaeaea;
-        idx += 6;
+        tmp[idx++] = vertices[cidx++];
+        tmp[idx++] = vertices[cidx++];
+        tmp[idx++] = vertices[cidx++];
+        //нужно переделать, чтобы было цвет отдельного треугольника был один
+        if (mark == 0)
+        {
+            tmp[idx++] = .1f; tmp[idx++] = .1f; tmp[idx++] = .1f;
+            mark++;
+        } else if (mark == 1)
+        {
+            tmp[idx++] = .5f; tmp[idx++] = .5f; tmp[idx++] = .5f;
+            mark++;
+        } else if (mark == 2)
+        {
+            tmp[idx++] = 0.8f; tmp[idx++] = 0.8f; tmp[idx++] = 0.8f;
+            mark = 0;
+        }
     }
-    printf("pritfdebug ");
+
     while (--idx >= 0)
         vertices[idx] = tmp[idx];
+    printf("idx %i\n", idx);
+    idx = 0;
+    int row = 1;
+    while (idx < g_scop.v_databuf_size * 2 * 3)
+    {
+        printf("row #%i:\t\t%f, %f, %f, %f, %f, %f\n", row++,
+        vertices[idx],
+        vertices[idx + 1],
+        vertices[idx + 2],
+        vertices[idx + 3],
+        vertices[idx + 4],
+        vertices[idx + 5]);
+        idx += 6;
+    }
     return (vertices);
+}
+
+void            get_colors(GLfloat **colors)
+{
+    int idx;
+
+    *colors = (GLfloat*)malloc_wrp(sizeof(GLfloat) * g_scop.v_databuf_size * 3);
+    idx = 0;
+    while (idx < g_scop.v_databuf_size * 3)
+    {
+        (*colors)[idx++] = 0.8f;
+        (*colors)[idx++] = 0.5f;
+        (*colors)[idx++] = 0.1f;
+    }
 }
 
 void			run(const char *filename)
@@ -176,6 +218,11 @@ void			run(const char *filename)
     GLuint *indices;
     get_object_data(filename, &vertices, &indices);
 
+    // array for the colors data. Need to implement function, wich will be
+    // store colors data depending on source of color info
+    GLfloat *colors;
+    // get_colors(colors);//TODO: implement
+
     printf("vsize: %i; fnum: %i\n", g_scop.v_databuf_size, g_scop.f_databuf_size);
 
     GLuint shader_program_id = load_shader_program();
@@ -191,16 +238,17 @@ void			run(const char *filename)
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size * 2 * 3 * sizeof(GLfloat), colored_data(vertices), GL_STATIC_DRAW);
+    vertices = colored_data(vertices, colors);// function to fill vertices and color info into TODO: implement
+    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size * 2 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    glBindVertexArray(0);
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_scop.f_databuf_size * sizeof(GLuint), indices, GL_STATIC_DRAW);
+    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
