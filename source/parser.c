@@ -120,19 +120,18 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 
 static t_indt	*triangulate(t_indt *indata, GLuint *all_size, GLuint size, char **arr)
 {
-	indata->idxs[0] = atoi(arr[1]) - 1;//1
-	indata->idxs[1] = atoi(arr[2]) - 1;//2
-	indata->idxs[2] = atoi(arr[3]) - 1;//3
+	indata->idxs[0] = atoi(arr[1]) - 1;
+	indata->idxs[1] = atoi(arr[2]) - 1;
+	indata->idxs[2] = atoi(arr[3]) - 1;
 	if (size == 5)
 	{
 		(*all_size) += 2;
 		indata->next = (t_indt*)malloc(sizeof(t_indt));
 		indata = indata->next;
 		indata->next = NULL;
-		// 3 2 4 or 4 2 3 ???
 		indata->idxs[0] = atoi(arr[3]) - 1;
-		indata->idxs[1] = atoi(arr[2]) - 1;
-		indata->idxs[2] = atoi(arr[4]) - 1;
+		indata->idxs[1] = atoi(arr[4]) - 1;
+		indata->idxs[2] = atoi(arr[1]) - 1;
 	}
 	indata->next = (t_indt*)malloc(sizeof(t_indt));
 	indata->next->next = NULL;
