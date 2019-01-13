@@ -37,7 +37,7 @@ static int		init_scop()
 {
 	g_pointers_idx = -1;
 	g_win.width = 1024;
-	g_win.height = 800;
+	g_win.height = 1024;
 	g_win.title = "SCOP";
     g_scop.v_databuf_size = 0;
 	g_scop.f_databuf_size = 0;
@@ -144,44 +144,34 @@ static void     *colored_data(GLfloat *vertices, GLfloat *colors)
     idx = 0;
     cidx = 0;
     int mark = 0;
-    printf("size %i\n", g_scop.v_databuf_size);
     while (idx < g_scop.v_databuf_size * 2 * 3)
     {
         tmp[idx++] = vertices[cidx++];
         tmp[idx++] = vertices[cidx++];
         tmp[idx++] = vertices[cidx++];
-        //нужно переделать, чтобы было цвет отдельного треугольника был один
         if (mark == 0)
         {
-            tmp[idx++] = .1f; tmp[idx++] = .1f; tmp[idx++] = .1f;
+            tmp[idx++] = .1f;
+            tmp[idx++] = .1f;
+            tmp[idx++] = .1f;
             mark++;
         } else if (mark == 1)
         {
-            tmp[idx++] = .5f; tmp[idx++] = .5f; tmp[idx++] = .5f;
+            tmp[idx++] = .8f;
+            tmp[idx++] = .8f;
+            tmp[idx++] = .8f;
             mark++;
         } else if (mark == 2)
         {
-            tmp[idx++] = 0.8f; tmp[idx++] = 0.8f; tmp[idx++] = 0.8f;
+            tmp[idx++] = .5f;
+            tmp[idx++] = .5f;
+            tmp[idx++] = .5f;
             mark = 0;
         }
     }
 
     while (--idx >= 0)
         vertices[idx] = tmp[idx];
-    printf("idx %i\n", idx);
-    idx = 0;
-    int row = 1;
-    while (idx < g_scop.v_databuf_size * 2 * 3)
-    {
-        printf("row #%i:\t\t%f, %f, %f, %f, %f, %f\n", row++,
-        vertices[idx],
-        vertices[idx + 1],
-        vertices[idx + 2],
-        vertices[idx + 3],
-        vertices[idx + 4],
-        vertices[idx + 5]);
-        idx += 6;
-    }
     return (vertices);
 }
 
@@ -196,6 +186,36 @@ void            get_colors(GLfloat **colors)
         (*colors)[idx++] = 0.8f;
         (*colors)[idx++] = 0.5f;
         (*colors)[idx++] = 0.1f;
+    }
+}
+
+/*
+** nom_of_axis: 0 - x, 1 - y, 2 - z
+*/
+static void     centralize(GLfloat *vertices, int num_of_axis)
+{
+    double  min;
+    double  max;
+    double  median;
+    int     idx;
+
+    min = __DBL_MAX__;
+    max = -__DBL_MAX__;
+    idx = num_of_axis;
+    while (idx < g_scop.v_databuf_size * 3)
+    {
+        if (vertices[idx] > max)
+            max = vertices[idx];
+        if (vertices[idx] < min)
+            min = vertices[idx];
+        idx += 3;
+    }
+    median = (min + max) / 2.0;
+    idx = num_of_axis;
+    while (idx < g_scop.v_databuf_size * 3)
+    {
+        vertices[idx] = vertices[idx] - median;
+        idx += 3;
     }
 }
 
@@ -214,9 +234,13 @@ void			run(const char *filename)
     glEnable(GL_DEPTH_TEST);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+//FREE CURSOR
+
     GLfloat *vertices;
     GLuint *indices;
     get_object_data(filename, &vertices, &indices);
+    centralize(vertices, 2);
+    centralize(vertices, 1);
 
     // array for the colors data. Need to implement function, wich will be
     // store colors data depending on source of color info

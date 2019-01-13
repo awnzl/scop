@@ -12,45 +12,38 @@ t_v		vector(GLfloat x, GLfloat y, GLfloat z)
 
 t_v		add(t_v v1, t_v v2)
 {
-	t_v ret;
-
-	ret.x = v1.x + v2.x;
-	ret.y = v1.y + v2.y;
-	ret.z = v1.z + v2.z;
-	return (ret);
+	v1.x = v1.x + v2.x;
+	v1.y = v1.y + v2.y;
+	v1.z = v1.z + v2.z;
+	return (v1);
 }
 
 t_v		sub(t_v v1, t_v v2)
 {
-	t_v	ret;
-
-	ret.x = v1.x - v2.x;
-	ret.y = v1.y - v2.y;
-	ret.z = v1.z - v2.z;
-	return (ret);
+	v1.x = v1.x - v2.x;
+	v1.y = v1.y - v2.y;
+	v1.z = v1.z - v2.z;
+	return (v1);
 }
 
 t_v		mult(t_v v1, t_v v2)
 {
-	t_v	ret;
-
-	ret.x = v1.x * v2.x;
-	ret.y = v1.y * v2.y;
-	ret.z = v1.z * v2.z;
-	return (ret);
+	v1.x = v1.x * v2.x;
+	v1.y = v1.y * v2.y;
+	v1.z = v1.z * v2.z;
+	return (v1);
 }
 
 t_v		norm(t_v direct)
 {
-	t_v		ret;
 	double	vmod;
 
 	vmod = sqrtf(direct.x * direct.x + direct.y * direct.y +
 				direct.z * direct.z);
-	ret.x = direct.x / vmod;
-	ret.y = direct.y / vmod;
-	ret.z = direct.z / vmod;
-	return (ret);
+	direct.x = direct.x / vmod;
+	direct.y = direct.y / vmod;
+	direct.z = direct.z / vmod;
+	return (direct);
 }
 
 
@@ -66,12 +59,10 @@ t_v		cross(t_v v1, t_v v2)
 
 t_v		scale_n(t_v vec, GLfloat n)
 {
-	t_v ret;
-
-	ret.x = vec.x * n;
-	ret.y = vec.y * n;
-	ret.z = vec.z * n;
-	return (ret);
+	vec.x = vec.x * n;
+	vec.y = vec.y * n;
+	vec.z = vec.z * n;
+	return (vec);
 }
 
 void	scale_s(t_v *vec, GLfloat n)
