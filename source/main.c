@@ -9,12 +9,13 @@ out vec4 vertexColor;\n\
 uniform mat4 view;\n\
 // uniform mat4 model;\n\
 uniform mat4 projection;\n\
-uniform mat4 rotation;\n\
+uniform mat4 rot_v;\n\
+uniform mat4 rot_h;\n\
 \n\
 \n\
 void main()\n\
 {\n\
-    gl_Position = projection * view * rotation * vec4(aPosition, 1.0f);\n\
+    gl_Position = projection * view * rot_v * rot_h * vec4(aPosition, 1.0f);\n\
     vertexColor = vec4(aColor, 1.0f);\n\
 }";
 
@@ -45,7 +46,9 @@ static int		init_scop()
 
     g_scop.is_pol_mod = 0;
     g_scop.xpos = 0.0f;
-    g_scop.rotation_angle = RADIAN(0.0f);
+    g_scop.ypos = 0.0f;
+    g_scop.rotation_v_angle = RADIAN(0.0f);
+    g_scop.rotation_h_angle = RADIAN(0.0f);
     g_scop.fov = 45.0f;
     g_scop.light_x = 0.7f;
     g_scop.light_y = 0.7f;
@@ -60,7 +63,8 @@ static int		init_scop()
     g_scop.cam_right = norm(cross(vector(0.0f, 1.0f, 0.0f), g_scop.cam_dir));
     g_scop.cam_up = norm(cross(g_scop.cam_dir, g_scop.cam_right));
     ft_memset(g_scop.view, 0, sizeof(GLfloat) * 16);
-    ft_memset(g_scop.rotation, 0, sizeof(GLfloat) * 16);
+    ft_memset(g_scop.rotation_v, 0, sizeof(GLfloat) * 16);
+    ft_memset(g_scop.rotation_h, 0, sizeof(GLfloat) * 16);
     ft_memset(g_scop.projection, 0, sizeof(GLfloat) * 16);
     proj_matrix();
 
@@ -278,7 +282,7 @@ void			run(const char *filename)
 
 
 
-    glBindVertexArray(vao);//нету смысла это делать каждый раз в цикле, если здесь используется только один VAO 
+    glBindVertexArray(vao);//нету смысла это делать каждый раз в цикле, если здесь используется только один VAO
 	while (!glfwWindowShouldClose(g_win.win))
 	{
 		glfwPollEvents();
@@ -290,7 +294,8 @@ void			run(const char *filename)
 		glUseProgram(shader_program_id);
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "projection"), 1, GL_FALSE, g_scop.projection);
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "view"), 1, GL_FALSE, g_scop.view);
-        glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "rotation"), 1, GL_FALSE, g_scop.rotation);
+        glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "rot_v"), 1, GL_FALSE, g_scop.rotation_v);
+        glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "rot_h"), 1, GL_FALSE, g_scop.rotation_h);
 
         glDrawElements(GL_TRIANGLES, g_scop.f_databuf_size, GL_UNSIGNED_INT, (void*)0);
 

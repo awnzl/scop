@@ -78,7 +78,9 @@ typedef struct	s_scope_state
 	int			keys[1024];
 	int			is_pol_mod; // = false;
 	GLfloat		xpos; // = 0.0f;
-	GLfloat		rotation_angle;//
+	GLfloat		ypos; // = 0.0f;
+	GLfloat		rotation_v_angle;//
+	GLfloat		rotation_h_angle;//
 	GLfloat		delta_time; // = 0.0f;
 	GLfloat		last_time; // = 0.0f;
 	GLfloat		fov; // = 45.0f;
@@ -93,9 +95,9 @@ typedef struct	s_scope_state
 	t_v			cam_right;
 	t_v			cam_up;
 	GLfloat		view[16];
-	GLfloat		rotation[16];
+	GLfloat		rotation_v[16];
+	GLfloat		rotation_h[16];
 	GLfloat		projection[16];
-	// GLfloat		*projection;
 }				t_state;
 
 /*

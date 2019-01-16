@@ -15,7 +15,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_callback(GLFWwindow* window, double xp, double yp)
 {
-    g_scop.rotation_angle += (g_scop.xpos < xp) ? 0.05 : -0.05;
+    g_scop.rotation_v_angle += (g_scop.xpos < xp) ? 0.05 : -0.05;
     g_scop.xpos = (GLfloat)xp;
 }
 

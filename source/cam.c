@@ -39,6 +39,14 @@ void keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up)
 		// glPolygonMode(GL_FRONT_AND_BACK, isPolygonMode ? GL_LINE : GL_FILL);
 		// isPolygonMode = isPolygonMode ? false : true;
 	}
+	if (g_scop.keys[GLFW_KEY_F])
+		g_scop.rotation_h_angle -= 0.05;
+	if (g_scop.keys[GLFW_KEY_C])
+		g_scop.rotation_h_angle += 0.05;
+	if (g_scop.keys[GLFW_KEY_R])
+		g_scop.rotation_v_angle -= 0.05;
+	if (g_scop.keys[GLFW_KEY_T])
+		g_scop.rotation_v_angle += 0.05;
 }
 
 /*
@@ -65,20 +73,31 @@ static void update_view_matrix()
 }
 
 /*
-** Rotation
 ** cos   0     sin   0
 ** 0     1     0     0
 ** -sin  0     cos   0
 ** 0     0     0     1
+**
+** 1     0     0     0
+** 0     cos   -sin  0
+** 0     sin   cos   0
+** 0     0     0     1
+**
 */
 static void update_rotate_matrix()
 {
-    g_scop.rotation[0] = cos(g_scop.rotation_angle);
-    g_scop.rotation[2] = sin(g_scop.rotation_angle);
-    g_scop.rotation[5] = 1;
-    g_scop.rotation[8] = -g_scop.rotation[2];
-    g_scop.rotation[10] = g_scop.rotation[0];
-    g_scop.rotation[15] = 1;
+    g_scop.rotation_v[0] = cos(g_scop.rotation_v_angle);
+    g_scop.rotation_v[2] = sin(g_scop.rotation_v_angle);
+    g_scop.rotation_v[5] = 1;
+    g_scop.rotation_v[8] = -g_scop.rotation_v[2];
+    g_scop.rotation_v[10] = g_scop.rotation_v[0];
+    g_scop.rotation_v[15] = 1;
+	g_scop.rotation_h[0] = 1;
+	g_scop.rotation_h[5] = cos(g_scop.rotation_h_angle);
+	g_scop.rotation_h[6] = -sin(g_scop.rotation_h_angle);
+	g_scop.rotation_h[9] = -g_scop.rotation_h[6];
+	g_scop.rotation_h[10] = g_scop.rotation_h[5];
+	g_scop.rotation_h[15] = 1;
 }
 
 void	update_matrices()
