@@ -15,7 +15,9 @@ uniform mat4 rot_h;\n\
 \n\
 void main()\n\
 {\n\
-    gl_Position = projection * view * rot_v * rot_h * vec4(aPosition, 1.0f);\n\
+    vec4 v1 = rot_v * vec4(aPosition, 1.0f);\n\
+    vec4 v2 = rot_h * v1;\n\
+    gl_Position = projection * view * v2;\n\
     vertexColor = vec4(aColor, 1.0f);\n\
 }";
 
