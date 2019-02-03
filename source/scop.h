@@ -46,29 +46,7 @@ typedef struct	s_vertex
 	float		x;
 	float		y;
 	float		z;
-	// float		w;
 }				t_v;
-
-typedef struct	s_vertex_normal
-{
-	float		i;
-	float		j;
-	float		k;
-}				t_vn;
-
-typedef struct	s_texture_vertex
-{
-	float		u;
-	float		v;
-	float		w;
-}				t_vt;
-
-typedef struct	s_face
-{
-	float		x;
-	float		y;
-	float		z;
-}				t_f;
 
 /*
 **	v_databuf_size is contain a quantity of vertices (xyz) -> v_databuf_size * 3

@@ -265,10 +265,10 @@ static void     centralize(GLfloat *vertices, int axis_number)
 
 static GLubyte  *texture_image(GLuint *w, GLuint *h)
 {
-    *w = 640;
-    *h = 640;
+    *w = 300;
+    *h = 300;
 
-    FILE *file = fopen("./texture_pixmap","rb");
+    FILE *file = fopen("./resources/texture_pixmap","rb");
 
     if(file == NULL)
     {
