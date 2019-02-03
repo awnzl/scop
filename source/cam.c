@@ -7,14 +7,14 @@ void keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up)
 	g_scop.last_time = current_frame;
 
 	GLfloat cam_speed = 5.0f * g_scop.delta_time;
-	if (g_scop.keys[GLFW_KEY_W])
-		*cam_pos = add(*cam_pos, scale_n(*cam_front, cam_speed));
 	if (g_scop.keys[GLFW_KEY_S])
+		*cam_pos = add(*cam_pos, scale_n(*cam_front, cam_speed));
+	if (g_scop.keys[GLFW_KEY_W])
 		*cam_pos = sub(*cam_pos, scale_n(*cam_front, cam_speed));
-	if (g_scop.keys[GLFW_KEY_A])
+	if (g_scop.keys[GLFW_KEY_D])
 		*cam_pos = sub(*cam_pos,
 						scale_n(norm(cross(*cam_up, *cam_front)), cam_speed));
-	if (g_scop.keys[GLFW_KEY_D])
+	if (g_scop.keys[GLFW_KEY_A])
 		*cam_pos = add(*cam_pos,
 						scale_n(norm(cross(*cam_up, *cam_front)), cam_speed));
 	if (g_scop.keys[GLFW_KEY_Q])
@@ -39,14 +39,14 @@ void keyboard_movements(t_v *cam_pos, t_v *cam_front, t_v *cam_up)
 		// glPolygonMode(GL_FRONT_AND_BACK, isPolygonMode ? GL_LINE : GL_FILL);
 		// isPolygonMode = isPolygonMode ? false : true;
 	}
-	if (g_scop.keys[GLFW_KEY_F])
-		g_scop.rotation_h_angle -= 0.05;
 	if (g_scop.keys[GLFW_KEY_C])
 		g_scop.rotation_h_angle += 0.05;
+	if (g_scop.keys[GLFW_KEY_F])
+		g_scop.rotation_h_angle -= 0.05;
 	if (g_scop.keys[GLFW_KEY_R])
-		g_scop.rotation_v_angle -= 0.05;
-	if (g_scop.keys[GLFW_KEY_T])
 		g_scop.rotation_v_angle += 0.05;
+	if (g_scop.keys[GLFW_KEY_T])
+		g_scop.rotation_v_angle -= 0.05;
 }
 
 /*

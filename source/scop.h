@@ -23,6 +23,11 @@
 
 # define RADIAN(a) (0.01745329 * a)
 
+/*
+** x,y,z, r,g,b, tx, ty
+*/
+# define VERT_SIZE_MULTIPLICATOR (3 + 3 + 2)
+
 typedef struct	s_scop
 {
 	t_obj		object;

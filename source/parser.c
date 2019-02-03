@@ -94,6 +94,11 @@ static void		read_content(GLuint *vsz,
 	free(vertex_face);
 }
 
+/*
+** Return an array with enough space for vertices'
+** coordinates, rgb value and texture coordinates.
+** Vertices' coordinates stored in a solid row.
+*/
 static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_float)
 {
 	GLfloat *verticies;
@@ -101,7 +106,8 @@ static GLfloat	*read_vertices(t_list *content, const GLuint size, const int is_f
 	char	**tmp;
 	int		j;
 
-	verticies = (GLfloat*)malloc_wrp(sizeof(GLfloat) * size * 2 * 3);
+	printf("vertices array size for malloc: %lu\n", sizeof(GLfloat) * size * VERT_SIZE_MULTIPLICATOR);
+	verticies = (GLfloat*)malloc_wrp(sizeof(GLfloat) * size * VERT_SIZE_MULTIPLICATOR);
 	head = verticies;
 	while (content)
 	{

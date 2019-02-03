@@ -4,7 +4,9 @@ const GLchar *vertex_code =
 "#version 410 core\n\
 layout (location = 0) in vec3 aPosition;\n\
 layout (location = 1) in vec3 aColor;\n\
+layout (location = 2) in vec2 aTexCoord;\n\
 out vec4 vertexColor;\n\
+out vec2 txCoord;\n\
 \n\
 uniform mat4 view;\n\
 // uniform mat4 model;\n\
@@ -15,20 +17,24 @@ uniform mat4 rot_h;\n\
 \n\
 void main()\n\
 {\n\
-    vec4 v1 = rot_v * vec4(aPosition, 1.0f);\n\
-    vec4 v2 = rot_h * v1;\n\
-    gl_Position = projection * view * v2;\n\
+    vec4 rot = rot_h * vec4(aPosition, 1.0f);\n\
+    rot *= rot_v;\n\
+    gl_Position = projection * view * rot;\n\
+    txCoord = aTexCoord;\n\
     vertexColor = vec4(aColor, 1.0f);\n\
 }";
 
 const GLchar *fragment_code =
 "#version 410 core\n\
+uniform sampler2D txSampler;\n\
 in vec4 vertexColor;\n\
+in vec2 txCoord;\n\
 out vec4 color;\n\
 \n\
 void main()\n\
 {\n\
-    color = vertexColor;\n\
+    //color = vertexColor;\n\
+    color = texture(txSampler, txCoord);\n\
 }";
 
 static void		print_usage()
@@ -141,20 +147,35 @@ static GLuint	load_shader_program()
 	return program_id;
 }
 
-static void     *colored_data(GLfloat *vertices, GLfloat *colors)
+/*
+** moves vertices' coordinates to the needed positions and copies
+** colors values to the needed positions
+**
+** incoming vertices' array contains all data in one row
+** outcoming array contain three values for vertices' coordinates,
+** three values for cololr and two not set cells for texture coordinates
+*/
+static void     colored_data(GLfloat *vertices, GLfloat *colors)//colors if need
 {
     int idx;
-    int cidx;
-    GLfloat tmp[g_scop.v_databuf_size * 2 * 3];
+    int vidx;
+    GLfloat tmp[g_scop.v_databuf_size * VERT_SIZE_MULTIPLICATOR];
 
     idx = 0;
-    cidx = 0;
+    vidx = 0;//index for vertices
     int mark = 0;
-    while (idx < g_scop.v_databuf_size * 2 * 3)
+    while (idx < g_scop.v_databuf_size * VERT_SIZE_MULTIPLICATOR)
     {
-        tmp[idx++] = vertices[cidx++];
-        tmp[idx++] = vertices[cidx++];
-        tmp[idx++] = vertices[cidx++];
+        tmp[idx++] = vertices[vidx++];
+        tmp[idx++] = vertices[vidx++];
+        tmp[idx++] = vertices[vidx++];
+        //colorazing
+        // int itmp = idx;
+        // tmp[idx++] = (1.0f - tmp[itmp - 2]) / 2.0f + 0.2f;
+        // tmp[idx++] = (1.0f - tmp[itmp - 1]) / 2.0f + 0.2f;
+        // tmp[idx++] = (1.0f - tmp[itmp]) / 2.0f + 0.2f;
+
+        //grayscaling
         if (mark == 0)
         {
             tmp[idx++] = .1f;
@@ -174,11 +195,27 @@ static void     *colored_data(GLfloat *vertices, GLfloat *colors)
             tmp[idx++] = .5f;
             mark = 0;
         }
+        idx += 2;
     }
 
     while (--idx >= 0)
         vertices[idx] = tmp[idx];
-    return (vertices);
+}
+
+static void     texture_coordinates(GLfloat *vertices)
+{
+    GLuint  idx;
+
+    idx = 6;
+    while (idx < g_scop.v_databuf_size * VERT_SIZE_MULTIPLICATOR)
+    {
+        vertices[idx] = 0.5 + atan2f(vertices[idx - 4], vertices[idx - 6]) / (2.0 * M_PI);
+        vertices[idx + 1] = acosf(vertices[idx - 5] /
+            sqrt(vertices[idx - 6] * vertices[idx - 6] +
+            vertices[idx - 5] * vertices[idx - 5] +
+            vertices[idx - 4] * vertices[idx - 4])) / M_PI;
+        idx += 8;
+    }
 }
 
 void            get_colors(GLfloat **colors)
@@ -196,9 +233,10 @@ void            get_colors(GLfloat **colors)
 }
 
 /*
-** nom_of_axis: 0 - x, 1 - y, 2 - z
+** shifts the starting point to the center of the object along given axis
+** int nom_of_axis: 0 - x, 1 - y, 2 - z
 */
-static void     centralize(GLfloat *vertices, int num_of_axis)
+static void     centralize(GLfloat *vertices, int axis_number)
 {
     double  min;
     double  max;
@@ -207,7 +245,7 @@ static void     centralize(GLfloat *vertices, int num_of_axis)
 
     min = __DBL_MAX__;
     max = -__DBL_MAX__;
-    idx = num_of_axis;
+    idx = axis_number;
     while (idx < g_scop.v_databuf_size * 3)
     {
         if (vertices[idx] > max)
@@ -217,12 +255,41 @@ static void     centralize(GLfloat *vertices, int num_of_axis)
         idx += 3;
     }
     median = (min + max) / 2.0;
-    idx = num_of_axis;
+    idx = axis_number;
     while (idx < g_scop.v_databuf_size * 3)
     {
         vertices[idx] = vertices[idx] - median;
         idx += 3;
     }
+}
+
+static GLubyte  *texture_image(GLuint *w, GLuint *h)
+{
+    *w = 640;
+    *h = 640;
+
+    FILE *file = fopen("./texture_pixmap","rb");
+
+    if(file == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+
+    GLubyte buf[4];
+    GLubyte *ret = malloc_wrp(*w * *h * 4);
+    GLuint  ridx = 0;
+    GLuint  bytes;
+    while ((bytes = fread(buf, 1, sizeof buf, file)) > 0)
+    {
+        int idx = -1;
+        while (++idx < bytes)
+            ret[ridx++] = buf[idx];
+    }
+
+    fclose(file);
+
+    return ret;
 }
 
 void			run(const char *filename)
@@ -240,8 +307,6 @@ void			run(const char *filename)
     glEnable(GL_DEPTH_TEST);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-//FREE CURSOR
-
     GLfloat *vertices;
     GLuint *indices;
     get_object_data(filename, &vertices, &indices);
@@ -252,29 +317,54 @@ void			run(const char *filename)
     // store colors data depending on source of color info
     GLfloat *colors;
     // get_colors(colors);//TODO: implement
+    // this data will be needed for colored_data()
 
-    printf("vsize: %i; fnum: %i\n", g_scop.v_databuf_size, g_scop.f_databuf_size);
+    printf("vsize: %i; fnum: %i, verts' array size: %i\n", g_scop.v_databuf_size, g_scop.f_databuf_size, g_scop.f_databuf_size * VERT_SIZE_MULTIPLICATOR);
 
     GLuint shader_program_id = load_shader_program();
     GLuint buffer;
     GLuint vao;
     GLuint ebo;
     GLuint vbo;
+    GLuint textr;
 
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
     glGenVertexArrays(1, &vao);
+    glGenTextures(1, &textr);
+
+    glBindTexture(GL_TEXTURE_2D, textr);
+    // texture wrapping
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    GLuint width;
+    GLuint height;
+    GLubyte *image = texture_image(&width, &height);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    vertices = colored_data(vertices, colors);// function to fill vertices and color info into TODO: implement
-    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size * 2 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    colored_data(vertices, colors);// function to fill vertices and color info into TODO: implement copying from colors
+    texture_coordinates(vertices);
+    glBufferData(GL_ARRAY_BUFFER, g_scop.v_databuf_size * VERT_SIZE_MULTIPLICATOR * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+
+    //vertices
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERT_SIZE_MULTIPLICATOR * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    //colors
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERT_SIZE_MULTIPLICATOR * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+    //texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, VERT_SIZE_MULTIPLICATOR * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_scop.f_databuf_size * sizeof(GLuint), indices, GL_STATIC_DRAW);
@@ -283,8 +373,8 @@ void			run(const char *filename)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
-
-    glBindVertexArray(vao);//нету смысла это делать каждый раз в цикле, если здесь используется только один VAO
+    glBindTexture(GL_TEXTURE_2D, textr);
+    glBindVertexArray(vao);
 	while (!glfwWindowShouldClose(g_win.win))
 	{
 		glfwPollEvents();
@@ -304,6 +394,10 @@ void			run(const char *filename)
 		glfwSwapBuffers(g_win.win);
 	}
     glBindVertexArray(0);
+
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
 
 }
 
