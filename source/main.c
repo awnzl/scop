@@ -27,20 +27,15 @@ void main()\n\
 const GLchar *fragment_code =
 "#version 410 core\n\
 uniform sampler2D txSampler;\n\
+uniform bool isTexture;\n\
 in vec4 vertexColor;\n\
 in vec2 txCoord;\n\
 out vec4 color;\n\
 \n\
 void main()\n\
 {\n\
-    //color = vertexColor;\n\
-    color = texture(txSampler, txCoord);\n\
+    color = isTexture ? texture(txSampler, txCoord) : vertexColor;\n\
 }";
-
-static void		print_usage()
-{
-	ft_putendl("./scop file_name.obj");
-}
 
 static int		init_scop()
 {
@@ -52,17 +47,17 @@ static int		init_scop()
 	g_scop.f_databuf_size = 0;
     g_scop.f_databuf_pos = 0;
 
-    g_scop.is_pol_mod = 0;
+    g_scop.is_pol_mod = false;
+    g_scop.is_texture = false;
     g_scop.xpos = 0.0f;
     g_scop.ypos = 0.0f;
     g_scop.rotation_v_angle = RADIAN(0.0f);
     g_scop.rotation_h_angle = RADIAN(0.0f);
     g_scop.fov = 45.0f;
-    g_scop.light_x = 0.7f;
-    g_scop.light_y = 0.7f;
-    g_scop.light_z = 0.7f;
     g_scop.delta_time = 0.0f;
     g_scop.last_time = 0.0f;
+    g_scop.tex_key_time = 1.0f;
+    g_scop.pol_key_time = 1.0f;
 
     g_scop.cam_pos = vector(0.0f , 0.0f , 8.0f);
     g_scop.cam_front = norm(vector(0.0f , 0.0f , -1.0f));
@@ -169,26 +164,26 @@ static void     colored_data(GLfloat *vertices, GLfloat *colors)//colors if need
         tmp[idx++] = vertices[vidx++];
         tmp[idx++] = vertices[vidx++];
         tmp[idx++] = vertices[vidx++];
-        //colorazing
+
         // int itmp = idx;
         // tmp[idx++] = (1.0f - tmp[itmp - 2]) / 2.0f + 0.2f;
         // tmp[idx++] = (1.0f - tmp[itmp - 1]) / 2.0f + 0.2f;
         // tmp[idx++] = (1.0f - tmp[itmp]) / 2.0f + 0.2f;
-
-        //grayscaling
-        if (mark == 0)
+        if (mark == 0) //grayscaling
         {
             tmp[idx++] = .1f;
             tmp[idx++] = .1f;
             tmp[idx++] = .1f;
             mark++;
-        } else if (mark == 1)
+        }
+        else if (mark == 1)
         {
             tmp[idx++] = .8f;
             tmp[idx++] = .8f;
             tmp[idx++] = .8f;
             mark++;
-        } else if (mark == 2)
+        }
+        else if (mark == 2)
         {
             tmp[idx++] = .5f;
             tmp[idx++] = .5f;
@@ -388,6 +383,7 @@ void			run(const char *filename)
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "view"), 1, GL_FALSE, g_scop.view);
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "rot_v"), 1, GL_FALSE, g_scop.rotation_v);
         glUniformMatrix4fv(glGetUniformLocation(shader_program_id, "rot_h"), 1, GL_FALSE, g_scop.rotation_h);
+        glUniform1i(glGetUniformLocation(shader_program_id, "isTexture"), g_scop.is_texture);
 
         glDrawElements(GL_TRIANGLES, g_scop.f_databuf_size, GL_UNSIGNED_INT, (void*)0);
 
@@ -404,7 +400,7 @@ void			run(const char *filename)
 int		main(int ac, char **av)
 {
 	if (ac < 2)
-		print_usage();
+		ft_putendl("./scop file_name.obj");
 	else
 		run(av[1]);
 

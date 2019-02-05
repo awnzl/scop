@@ -59,17 +59,17 @@ typedef struct	s_scope_state
 	GLuint		f_databuf_pos;//TODO: unused, rm it
 
 	int			keys[1024];
-	int			is_pol_mod; // = false;
+	_Bool		is_pol_mod; // = false;
+	_Bool		is_texture;
 	GLfloat		xpos; // = 0.0f;
 	GLfloat		ypos; // = 0.0f;
 	GLfloat		rotation_v_angle;//
 	GLfloat		rotation_h_angle;//
 	GLfloat		delta_time; // = 0.0f;
 	GLfloat		last_time; // = 0.0f;
+	GLfloat		tex_key_time; // = 1.0f;
+	GLfloat		pol_key_time; // = 1.0f;
 	GLfloat		fov; // = 45.0f;
-	GLfloat		light_x; // = 0.0f;
-	GLfloat		light_y; // = 0.0f;
-	GLfloat		light_z; // = 0.0f;
 
 	t_v			cam_pos;
 	t_v			cam_front;
