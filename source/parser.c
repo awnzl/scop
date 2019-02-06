@@ -202,6 +202,5 @@ void		get_object_data(const char *filename, GLfloat **vertices, GLuint **indices
 	read_content(&g_scop.v_databuf_size, &g_scop.f_databuf_size, &content, filename);
 	*vertices = read_vertices(content[0], g_scop.v_databuf_size, 1);
 	*indices = read_indices(content[1], &g_scop.f_databuf_size);
-	g_scop.f_databuf_pos = g_scop.v_databuf_size;
 	free_content(content);
 }

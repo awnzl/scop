@@ -15,11 +15,9 @@
 # include <math.h>
 # include <stdbool.h>
 
-#	include <stdio.h> //TODO: delete
+# include <stdio.h>
 
 # include "libft.h"
-
-# include "objrepresentation.h"
 
 # define RADIAN(a) (0.01745329 * a)
 
@@ -27,11 +25,6 @@
 ** x,y,z, r,g,b, tx, ty
 */
 # define VERT_SIZE_MULTIPLICATOR (3 + 3 + 2)
-
-typedef struct	s_scop
-{
-	t_obj		object;
-}				t_scop;
 
 typedef struct	s_win
 {
@@ -54,9 +47,8 @@ typedef struct	s_vertex
 */
 typedef struct	s_scope_state
 {
-	GLuint		v_databuf_size;//TODO: rename to num_of_vertices
-	GLuint		f_databuf_size;//TODO: rename to num_of_indices
-	GLuint		f_databuf_pos;//TODO: unused, rm it
+	GLuint		v_databuf_size;
+	GLuint		f_databuf_size;
 
 	int			keys[1024];
 	_Bool		is_pol_mod; // = false;

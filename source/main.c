@@ -5,7 +5,7 @@ const GLchar *vertex_code =
 layout (location = 0) in vec3 aPosition;\n\
 layout (location = 1) in vec3 aColor;\n\
 layout (location = 2) in vec2 aTexCoord;\n\
-out vec4 vertexColor;\n\
+flat out vec4 vertexColor;\n\
 out vec2 txCoord;\n\
 \n\
 uniform mat4 view;\n\
@@ -28,7 +28,7 @@ const GLchar *fragment_code =
 "#version 410 core\n\
 uniform sampler2D txSampler;\n\
 uniform bool isTexture;\n\
-in vec4 vertexColor;\n\
+flat in vec4 vertexColor;\n\
 in vec2 txCoord;\n\
 out vec4 color;\n\
 \n\
@@ -40,12 +40,11 @@ void main()\n\
 static int		init_scop()
 {
 	g_pointers_idx = -1;
-	g_win.width = 1024;
-	g_win.height = 1024;
+	g_win.width = 640;
+	g_win.height = 640;
 	g_win.title = "SCOP";
     g_scop.v_databuf_size = 0;
 	g_scop.f_databuf_size = 0;
-    g_scop.f_databuf_pos = 0;
 
     g_scop.is_pol_mod = false;
     g_scop.is_texture = false;
@@ -87,7 +86,7 @@ static void		free_scop()
 		free(g_pointers[idx]);
     g_pointers_idx = -1;
 	glfwTerminate();
-    // system("leaks scop");
+    // system("leaks Scop");
 }
 
 static GLuint	load_shader_program()
@@ -159,37 +158,60 @@ static void     colored_data(GLfloat *vertices, GLfloat *colors)//colors if need
     idx = 0;
     vidx = 0;//index for vertices
     int mark = 0;
+    float key = 0;
     while (idx < g_scop.v_databuf_size * VERT_SIZE_MULTIPLICATOR)
     {
         tmp[idx++] = vertices[vidx++];
         tmp[idx++] = vertices[vidx++];
         tmp[idx++] = vertices[vidx++];
 
-        // int itmp = idx;
-        // tmp[idx++] = (1.0f - tmp[itmp - 2]) / 2.0f + 0.2f;
-        // tmp[idx++] = (1.0f - tmp[itmp - 1]) / 2.0f + 0.2f;
-        // tmp[idx++] = (1.0f - tmp[itmp]) / 2.0f + 0.2f;
-        if (mark == 0) //grayscaling
-        {
-            tmp[idx++] = .1f;
-            tmp[idx++] = .1f;
-            tmp[idx++] = .1f;
-            mark++;
-        }
-        else if (mark == 1)
-        {
-            tmp[idx++] = .8f;
-            tmp[idx++] = .8f;
-            tmp[idx++] = .8f;
-            mark++;
-        }
-        else if (mark == 2)
-        {
-            tmp[idx++] = .5f;
-            tmp[idx++] = .5f;
-            tmp[idx++] = .5f;
-            mark = 0;
-        }
+        // key = ((float)rand())/(float)(RAND_MAX) * .8;
+        // key = 0.3 + key * 0.5;
+        // tmp[idx++] = key;
+        // tmp[idx++] = key;
+        // tmp[idx++] = key;
+        int itmp = idx;
+        tmp[idx++] = (1.0f - tmp[itmp - 2]) / 2.0f + 0.2f;
+        tmp[idx++] = (1.0f - tmp[itmp - 1]) / 2.0f + 0.2f;
+        tmp[idx++] = (1.0f - tmp[itmp]) / 2.0f + 0.2f;
+        // if (toggle)
+        // {
+        //     tmp[idx++] = .1f;
+        //     tmp[idx++] = .1f;
+        //     tmp[idx++] = .1f;
+
+        //     toggle = false;
+        // }
+        // else
+        // {
+
+        //     tmp[idx++] = .8f;
+        //     tmp[idx++] = .8f;
+        //     tmp[idx++] = .8f;
+        //     toggle = true;
+        // }
+
+        // if (mark == 0) //grayscaling
+        // {
+        //     tmp[idx++] = .1f;
+        //     tmp[idx++] = .1f;
+        //     tmp[idx++] = .1f;
+        //     mark++;
+        // }
+        // else if (mark == 1)
+        // {
+        //     tmp[idx++] = .8f;
+        //     tmp[idx++] = .8f;
+        //     tmp[idx++] = .8f;
+        //     mark++;
+        // }
+        // else if (mark == 2)
+        // {
+        //     tmp[idx++] = .5f;
+        //     tmp[idx++] = .5f;
+        //     tmp[idx++] = .5f;
+        //     mark = 0;
+        // }
         idx += 2;
     }
 
@@ -375,6 +397,7 @@ void			run(const char *filename)
 		glfwPollEvents();
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
         update_matrices();
 
