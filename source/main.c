@@ -118,8 +118,8 @@ static GLuint	load_shader_program()
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        print_error_endl("ERROR::SHADER::VERTEX::COMPILATION_FAILED");
+        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+        print_error_endl("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED");
 		print_error_endl(infoLog);
     };
 
